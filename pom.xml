@@ -26,6 +26,8 @@
         <spring-cloud.version>2023.0.3</spring-cloud.version>
         <spring-cloud-alibaba.version>2023.0.3.2</spring-cloud-alibaba.version>
         <mybatis-plus.version>3.5.7</mybatis-plus.version>
+        <!-- 覆盖 Spring Boot 默认的 lombok：1.18.34 不支持 Maven 用的 JDK 23，升级到 1.18.36 -->
+        <lombok.version>1.18.36</lombok.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -51,6 +53,18 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <!--
+                    关键配置：JDK 23 起默认禁用隐式注解处理，
+                    不显式开启会导致 Lombok（@Data/@Getter）失效。
+                    proc=full 强制启用，保证任何 JDK 版本下都能正常编译。
+                    -->
+                    <proc>full</proc>
+                </configuration>
             </plugin>
         </plugins>
     </build>
