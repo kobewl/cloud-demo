@@ -45,6 +45,12 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- MyBatis-Plus：统一版本，子模块使用时不写版本号 -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
