@@ -13,12 +13,12 @@
 ### ✅ 已完成
 - [x] 环境搭建：Docker 部署 Nacos（注册/配置中心）+ MySQL
 - [x] 设计文档：`docs/superpowers/specs/`
+- [x] P1 父工程重构 + common-core 公共模块（统一返回 R、错误码、全局异常）
+- [x] P2 商品服务 + 库存服务骨架，注册到 Nacos
+- [x] P3 接入 MySQL（MyBatis-Plus）
+- [x] P4 商品服务 Feign 调用库存服务（详情带库存 + 购买扣库存）
 
 ### 🔨 规划中（按学习顺序）
-- [ ] P1 父工程重构 + common-core 公共模块
-- [ ] P2 商品服务 + 库存服务骨架，注册到 Nacos
-- [ ] P3 接入 MySQL（MyBatis-Plus）
-- [ ] P4 商品服务 Feign 调用库存服务
 - [ ] P5 Nacos 配置中心
 - [ ] P6 Gateway 网关
 - [ ] P7 Sentinel 限流
