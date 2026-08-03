@@ -30,6 +30,12 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
+        <!-- Feign 负载均衡：Spring Cloud 2023 移除了 Ribbon，必须显式引入 LoadBalancer，
+             否则 Feign 解析出多个服务实例后不知道发给谁，启动即报错 -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
         <!-- MyBatis-Plus（Spring Boot 3 专用 starter） -->
         <dependency>
             <groupId>com.baomidou</groupId>
