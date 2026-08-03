@@ -9,12 +9,7 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>service-order</artifactId>
-
-    <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
+    <artifactId>service-stock</artifactId>
+    <name>service-stock</name>
+    <description>库存服务（占位 pom，Task 4 填充完整内容）</description>
 </project>

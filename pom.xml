@@ -10,6 +10,7 @@
     </parent>
     <packaging>pom</packaging>
     <modules>
+        <module>common</module>
         <module>services</module>
     </modules>
     <groupId>com.wangliang</groupId>
@@ -24,6 +25,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-cloud.version>2023.0.3</spring-cloud.version>
         <spring-cloud-alibaba.version>2023.0.3.2</spring-cloud-alibaba.version>
+        <mybatis-plus.version>3.5.7</mybatis-plus.version>
     </properties>
     <dependencyManagement>
         <dependencies>
