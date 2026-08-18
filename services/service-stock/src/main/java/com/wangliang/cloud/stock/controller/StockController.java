@@ -46,4 +46,13 @@ public class StockController {
         }
         return R.ok();
     }
+
+    /** 回补库存（下单补偿用，Feign 调用入口） */
+    @PostMapping("/add/{productId}/{count}")
+    public R<Void> add(@PathVariable Long productId, @PathVariable Integer count) {
+        if (!stockService.add(productId, count)) {
+            throw new BusinessException(ResultCode.STOCK_NOT_FOUND);
+        }
+        return R.ok();
+    }
 }

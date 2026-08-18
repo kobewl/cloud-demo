@@ -16,4 +16,10 @@ public interface StockService extends IService<Stock> {
      * @return true=扣减成功；false=库存不足
      */
     boolean deduct(Long productId, Integer count);
+
+    /**
+     * 回补库存（补偿用）：扣库存成功但后续步骤失败时调用
+     * @return true=回补成功
+     */
+    boolean add(Long productId, Integer count);
 }

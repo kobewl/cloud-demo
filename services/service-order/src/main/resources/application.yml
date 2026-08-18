@@ -1,0 +1,23 @@
+server:
+  port: 8083                     # 订单服务端口
+
+spring:
+  application:
+    name: service-order          # 服务名：网关 lb://service-order 就靠它找到我们
+  cloud:
+    nacos:
+      discovery:
+        # NACOS_ADDR 覆盖：跨机器部署时传 -DNACOS_ADDR=<Nacos所在机器IP>:8848
+        # NACOS_IP 覆盖：多网卡机器传 -DNACOS_IP=<本机局域网IP>，防止注册成虚拟网卡地址
+        server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+        ip: ${NACOS_IP:}
+        username: nacos
+        password: nacos
+      config:
+        server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+        username: nacos
+        password: nacos
+  config:
+    # 配置中心入口（P5 约定：业务/环境配置外置到 Nacos，本地只留启动必需项）
+    import:
+      - optional:nacos:service-order.yaml?refreshEnabled=true

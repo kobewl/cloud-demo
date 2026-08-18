@@ -19,4 +19,15 @@ public interface StockMapper extends BaseMapper<Stock> {
      */
     @Update("update stock set quantity = quantity - #{count}, updated_at = now() where product_id = #{productId} and quantity >= #{count}")
     int deductStock(@Param("productId") Long productId, @Param("count") Integer count);
+
+    /**
+     * 回补库存：下单流程里"扣库存成功但落订单失败"时，把扣掉的库存加回来（手动补偿）。
+     * 正常业务流程不需要，但学习分布式事务补偿时很有用。
+     *
+     * @param productId 商品ID
+     * @param count     回补数量
+     * @return 影响行数：1=回补成功；0=该商品没有库存记录
+     */
+    @Update("update stock set quantity = quantity + #{count}, updated_at = now() where product_id = #{productId}")
+    int addStock(@Param("productId") Long productId, @Param("count") Integer count);
 }

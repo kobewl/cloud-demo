@@ -13,6 +13,7 @@
     <modules>
         <module>service-product</module>
         <module>service-stock</module>
+        <module>service-order</module>
     </modules>
     <artifactId>services</artifactId>
 

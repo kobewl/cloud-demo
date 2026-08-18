@@ -27,7 +27,11 @@ public enum ResultCode {
 
     // 库存服务错误（702xx）
     STOCK_NOT_FOUND(70200, "库存记录不存在"),
-    STOCK_NOT_ENOUGH(70201, "库存不足");
+    STOCK_NOT_ENOUGH(70201, "库存不足"),
+
+    // 订单服务错误（703xx）
+    ORDER_CREATE_FAIL(70300, "订单创建失败"),
+    ORDER_NOT_FOUND(70301, "订单不存在");
 
 
     // 错误码

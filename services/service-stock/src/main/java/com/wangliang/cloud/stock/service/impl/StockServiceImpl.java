@@ -25,4 +25,10 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, Stock> implements
         // 原子扣减：交给 Mapper 里的手写 SQL（数据库行锁保证并发安全）
         return baseMapper.deductStock(productId, count) > 0;
     }
+
+    @Override
+    public boolean add(Long productId, Integer count) {
+        // 原子回补：把扣掉的库存加回来
+        return baseMapper.addStock(productId, count) > 0;
+    }
 }

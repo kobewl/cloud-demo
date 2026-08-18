@@ -19,7 +19,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public R<Void> handleBusinessException(BusinessException e) {
         log.warn("业务异常: {}", e.getMessage());
-        return R.fail(e.getResultCode());
+        return R.fail(e.getCode(), e.getMessage());
     }
 
     /** 参数校验异常：取第一个校验失败的提示 */
