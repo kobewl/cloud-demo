@@ -18,9 +18,9 @@
 - [x] P3 接入 MySQL（MyBatis-Plus）
 - [x] P4 商品服务 Feign 调用库存服务（详情带库存 + 购买扣库存）
 - [x] P5 Nacos 配置中心（配置文件外置 + 动态刷新）
+- [x] P6 Gateway 网关（统一入口 + 路由转发 + 路由配置外置 Nacos 动态刷新）
 
 ### 🔨 规划中（按学习顺序）
-- [ ] P6 Gateway 网关
 - [ ] P7 Sentinel 限流
 - [ ] P8 链路追踪 + Seata 事务（后期）
 
@@ -33,8 +33,9 @@ cloud-demo/                          # 父工程：统一依赖版本，不写�
 │   └── common-core/                 # 公共模块：统一返回、错误码、工具类
 ├── services/
 │   ├── service-product/             # 📦 商品服务（核心学习对象）
-│   └── service-stock/               # 📦 库存服务（被商品服务 Feign 调用）
-├── gateway/                         # 🚪 API 网关（规划中）
+│   ├── service-stock/               # 📦 库存服务（被商品服务 Feign 调用）
+│   └── service-order/               # 📦 订单服务（下单扣库存，跨服务调用）
+├── gateway/                         # 🚪 API 网关（统一入口 + 路由转发）
 └── docs/superpowers/specs/          # 设计文档
 ```
 

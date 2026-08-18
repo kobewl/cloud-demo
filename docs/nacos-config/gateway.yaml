@@ -1,0 +1,38 @@
+# =====================================================================
+# gateway 配置中心配置（Data ID: gateway.yaml, Group: DEFAULT_GROUP）
+#
+# 使用说明：
+#   · 本文件是 Nacos 配置中心里该 Data ID 的"源文件"（配置即代码）。
+#   · 修改本文件后，需手动同步到 Nacos 控制台：配置管理 -> 配置列表
+#     -> 编辑 gateway.yaml -> 发布（Windows Nacos: http://10.110.0.170:18080）
+#   · 网关通过 application.yml 里的 spring.config.import 拉取这里的内容。
+# =====================================================================
+
+spring:
+  cloud:
+    gateway:
+      routes:
+        # 商品服务：/api/product/** 转发到 service-product
+        - id: product-route
+          uri: lb://service-product
+          predicates:
+            - Path=/api/product/**
+        # 库存服务：/api/stock/** 转发到 service-stock
+        - id: stock-route
+          uri: lb://service-stock
+          predicates:
+            - Path=/api/stock/**
+        # 订单服务：/api/order/** 转发到 service-order
+        - id: order-route
+          uri: lb://service-order
+          predicates:
+            - Path=/api/order/**
+        # 动态路由演示：/api/config-test/** 转发到商品服务的 /api/config/**
+        # RewritePath 说明：把 /api/config-test/notice 重写为 /api/config/notice
+        #   (?<segment>.*) 捕获路径剩余部分，${segment} 引用它（注意 $ 前用 \ 转义 YAML 语义）
+        - id: config-test-route
+          uri: lb://service-product
+          predicates:
+            - Path=/api/config-test/**
+          filters:
+            - RewritePath=/api/config-test/(?<segment>.*), /api/config/$\{segment}

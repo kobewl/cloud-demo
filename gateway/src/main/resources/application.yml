@@ -12,29 +12,21 @@ spring:
         ip: ${NACOS_IP:}
         username: nacos
         password: nacos
+      config:
+        server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+        username: nacos
+        password: nacos
     sentinel:
       # 网关场景必须关闭 Sentinel 的 Servlet 过滤器适配：
       # 否则控制台上会出现 URL 资源，且与网关限流适配器冲突
       filter:
         enabled: false
-    gateway:
-      routes:
-        # 商品服务：/api/product/** 转发到 service-product
-        - id: product-route
-          uri: lb://service-product
-          predicates:
-            - Path=/api/product/**
-        # 库存服务：/api/stock/** 转发到 service-stock
-        - id: stock-route
-          uri: lb://service-stock
-          predicates:
-            - Path=/api/stock/**
-        # 订单服务：/api/order/** 转发到 service-order
-        - id: order-route
-          uri: lb://service-order
-          predicates:
-            - Path=/api/order/**
+  config:
+    # 配置中心入口（P5 约定）：路由等业务配置外置到 Nacos 的 gateway.yaml。
+    # optional: 前缀 = Nacos 里没有这份配置也能启动（不快速失败，路由为空而已）。
+    import:
+      - optional:nacos:gateway.yaml?refreshEnabled=true
 
-# 说明：网关的路由配置刻意留在本地（application.yml），而不是外置到 Nacos 配置中心。
-# 理由：网关本身就是"配置即路由"，路由留本地最直观、好排查；
-#       且网关配置中心化后路由动态刷新需要额外处理，学习阶段先不引入这个复杂度。
+# 说明：路由配置（spring.cloud.gateway.routes）已外置到 Nacos（docs/nacos-config/gateway.yaml）。
+# 本文件只保留启动必需项：端口、服务名、Nacos 地址、Sentinel 基础开关。
+# 路由变更流程：改 docs/nacos-config/gateway.yaml -> 同步 Nacos -> 网关刷新后自动生效。
