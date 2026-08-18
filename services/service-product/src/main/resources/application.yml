@@ -7,11 +7,14 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 127.0.0.1:8848   # Nacos 服务端地址（程序连 8848，浏览器才用 18080）
+        # NACOS_ADDR 覆盖：跨机器部署时传 -DNACOS_ADDR=<Nacos所在机器IP>:8848
+        # NACOS_IP 覆盖：多网卡机器传 -DNACOS_IP=<本机局域网IP>，防止注册成虚拟网卡地址
+        server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+        ip: ${NACOS_IP:}
         username: nacos
         password: nacos
       config:
-        server-addr: 127.0.0.1:8848   # 配置中心也指向同一个 Nacos
+        server-addr: ${NACOS_ADDR:127.0.0.1:8848}
         username: nacos
         password: nacos
   config:

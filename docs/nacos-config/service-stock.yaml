@@ -11,9 +11,10 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: "jdbc:mysql://127.0.0.1:3306/stock_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai"
+    # 默认指向 Windows 服务器 MySQL（10.110.0.170）；跨机器部署时可用 -DMYSQL_HOST=<IP> 覆盖
+    url: "jdbc:mysql://${MYSQL_HOST:10.110.0.170}:3306/stock_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai"
     username: root
-    password: "123456"
+    password: "12345678"
   sql:
     init:
       mode: always
