@@ -1,0 +1,27 @@
+# =====================================================================
+# service-stock 配置中心配置（Data ID: service-stock.yaml, Group: DEFAULT_GROUP）
+#
+# 使用说明：
+#   · 本文件是 Nacos 配置中心里该 Data ID 的"源文件"（配置即代码）。
+#   · 修改本文件后，需手动同步到 Nacos 控制台：配置管理 -> 配置列表
+#     -> 编辑 service-stock.yaml -> 发布（本机地址 http://localhost:18080）
+#   · 服务启动时会通过 application.yml 里的 spring.config.import 拉取这里的内容。
+# =====================================================================
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: "jdbc:mysql://127.0.0.1:3306/stock_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai"
+    username: root
+    password: "123456"
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/schema.sql
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: assign_id

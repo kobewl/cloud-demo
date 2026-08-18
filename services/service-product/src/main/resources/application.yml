@@ -1,28 +1,22 @@
 server:
-  port: 8081                     # 商品服务端口
+  port: 8081                     # 商品服务端口（启动"基础设施"，留在本地；业务/环境配置外置到 Nacos）
 
 spring:
   application:
-    name: service-product        # 服务名：在 Nacos 注册中心里的"身份证"
+    name: service-product        # 服务名：Nacos 注册中心 + 配置中心的"身份证"
   cloud:
     nacos:
       discovery:
         server-addr: 127.0.0.1:8848   # Nacos 服务端地址（程序连 8848，浏览器才用 18080）
         username: nacos
         password: nacos
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/product_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
-    username: root
-    password: 123456
-  sql:
-    init:
-      mode: always                       # 启动时自动执行 schema.sql
-      schema-locations: classpath:db/schema.sql
-
-mybatis-plus:
-  configuration:
-    map-underscore-to-camel-case: true   # 数据库下划线字段自动映射为驼峰属性
-  global-config:
-    db-config:
-      id-type: assign_id                 # 主键用雪花算法（分布式环境不重复）
+      config:
+        server-addr: 127.0.0.1:8848   # 配置中心也指向同一个 Nacos
+        username: nacos
+        password: nacos
+  config:
+    # 配置中心入口（Spring Boot 2.4+ 标准方式，bootstrap 已废弃）：
+    # optional: 前缀 = Nacos 里没有这份配置也能启动（不快速失败）；
+    # ?refreshEnabled=true = 监听配置变更，配合 @RefreshScope 实现动态刷新。
+    import:
+      - optional:nacos:service-product.yaml?refreshEnabled=true

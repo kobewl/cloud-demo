@@ -1,0 +1,32 @@
+# =====================================================================
+# service-product 配置中心配置（Data ID: service-product.yaml, Group: DEFAULT_GROUP）
+#
+# 使用说明：
+#   · 本文件是 Nacos 配置中心里该 Data ID 的"源文件"（配置即代码）。
+#   · 修改本文件后，需手动同步到 Nacos 控制台：配置管理 -> 配置列表
+#     -> 编辑 service-product.yaml -> 发布（本机地址 http://localhost:18080）
+#   · 服务启动时会通过 application.yml 里的 spring.config.import 拉取这里的内容。
+# =====================================================================
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: "jdbc:mysql://127.0.0.1:3306/product_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai"
+    username: root
+    password: "123456"
+  sql:
+    init:
+      mode: always                       # 启动时自动执行 schema.sql
+      schema-locations: classpath:db/schema.sql
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true   # 数据库下划线字段自动映射为驼峰属性
+  global-config:
+    db-config:
+      id-type: assign_id                 # 主键用雪花算法（分布式环境不重复）
+
+# 自定义业务配置：演示 Nacos 动态刷新。
+# 在控制台把下面这段的值改掉并发布，商品服务的 GET /api/config/notice 不重启就能读到新值。
+shop:
+  notice: "【动态配置】商品服务公告：全场图书 8 折，满 99 包邮"

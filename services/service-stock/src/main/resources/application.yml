@@ -1,5 +1,5 @@
 server:
-  port: 8082                     # 库存服务端口
+  port: 8082                     # 库存服务端口（启动"基础设施"，留在本地；业务/环境配置外置到 Nacos）
 
 spring:
   application:
@@ -10,19 +10,11 @@ spring:
         server-addr: 127.0.0.1:8848
         username: nacos
         password: nacos
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/stock_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
-    username: root
-    password: 123456
-  sql:
-    init:
-      mode: always
-      schema-locations: classpath:db/schema.sql
-
-mybatis-plus:
-  configuration:
-    map-underscore-to-camel-case: true
-  global-config:
-    db-config:
-      id-type: assign_id
+      config:
+        server-addr: 127.0.0.1:8848
+        username: nacos
+        password: nacos
+  config:
+    # 配置中心入口（Spring Boot 2.4+ 标准方式，bootstrap 已废弃）
+    import:
+      - optional:nacos:service-stock.yaml?refreshEnabled=true
