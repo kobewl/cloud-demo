@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>微服务基础知识 · 可视化导览（cloud-demo 视角）</title>
+<style>
+  :root {
+    --primary: #2563eb;
+    --primary-dark: #1e40af;
+    --bg: #f6f8fa;
+    --card: #ffffff;
+    --border: #e2e8f0;
+    --text: #1e293b;
+    --muted: #64748b;
+    --ok: #16a34a;
+    --warn: #d97706;
+    --todo: #94a3b8;
+    --code-bg: #0f172a;
+    --code-text: #e2e8f0;
+    --accent-red: #dc2626;
+    --accent-blue: #2563eb;
+    --accent-green: #16a34a;
+    --accent-purple: #7c3aed;
+    --accent-orange: #ea580c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding-bottom: 80px;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+  /* ===== Header ===== */
+  header {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 55%, #3b82f6 100%);
+    color: #fff;
+    padding: 44px 0 36px;
+    margin-bottom: 36px;
+  }
+  header h1 { font-size: 28px; font-weight: 700; }
+  header p { opacity: .92; margin-top: 8px; font-size: 15px; }
+  .tags { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag {
+    background: rgba(255,255,255,.18);
+    border: 1px solid rgba(255,255,255,.35);
+    padding: 3px 10px; border-radius: 999px; font-size: 12px;
+  }
+
+  /* ===== Section ===== */
+  section { margin-bottom: 44px; }
+  h2 {
+    font-size: 21px; font-weight: 700; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  h2 .no {
+    background: var(--primary); color: #fff; width: 30px; height: 30px;
+    border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+  }
+  .sub { color: var(--muted); font-size: 14px; margin-bottom: 18px; }
+
+  /* ===== Cards / grid ===== */
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px 20px; box-shadow: 0 1px 2px rgba(15,23,42,.05);
+  }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+
+  .vs-title { font-weight: 700; font-size: 15px; margin-bottom: 10px; display:flex; align-items:center; gap:8px; }
+  .badge { font-size: 12px; padding: 2px 8px; border-radius: 999px; color:#fff; }
+  .badge.mono { background:#64748b; }
+  .badge.micro { background:var(--primary); }
+  .vs-list { list-style: none; }
+  .vs-list li { padding: 6px 0 6px 22px; position: relative; font-size: 14px; }
+  .vs-list li::before { content: "•"; position: absolute; left: 6px; color: var(--primary); font-weight: 700; }
+  .vs-list li.mono::before { color: #94a3b8; }
+
+  /* ===== Architecture diagram ===== */
+  .arch-box {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 24px 18px; box-shadow: 0 1px 2px rgba(15,23,42,.05);
+  }
+  .arch-row { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+  .arch-row + .arch-row { margin-top: 14px; }
+  .node {
+    border-radius: 10px; padding: 10px 14px; min-width: 128px; text-align: center;
+    color: #fff; font-size: 13px; font-weight: 600; position: relative;
+  }
+  .node small { display: block; font-weight: 400; font-size: 11px; opacity: .85; margin-top: 2px; }
+  .n-client { background: var(--accent-orange); }
+  .n-nacos { background: var(--accent-purple); }
+  .n-gateway { background: #0891b2; }
+  .n-product { background: var(--accent-blue); }
+  .n-stock { background: var(--accent-green); }
+  .n-db { background: #475569; }
+  .n-db small { font-weight: 400; }
+  .arrow { color: var(--muted); font-size: 18px; font-weight: 700; user-select: none; }
+  .arrow-label {
+    font-size: 11px; color: var(--muted); background: #eef2f7; border-radius: 999px;
+    padding: 1px 8px; white-space: nowrap;
+  }
+  .legend { display: flex; gap: 18px; justify-content: center; margin-top: 16px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+  .legend .line { display: inline-flex; align-items: center; gap: 6px; }
+  .solid { width: 26px; height: 0; border-top: 2px solid var(--primary); display: inline-block; }
+  .dashed { width: 26px; border-top: 2px dashed var(--accent-purple); display: inline-block; }
+  .heartbeat { width: 26px; border-top: 2px dotted var(--accent-green); display: inline-block; }
+
+  /* ===== Flow (data walkthrough) ===== */
+  .flow-stage { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .flow-progress { font-size: 13px; color: var(--muted); }
+  .step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 50%; background: #e2e8f0; color: #475569;
+    font-weight: 700; font-size: 14px; flex-shrink: 0;
+  }
+  .step-num.active { background: var(--primary); color: #fff; box-shadow: 0 0 0 4px rgba(37,99,235,.18); }
+  .step-card { margin-top: 14px; }
+  .step-title { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+  .step-desc { font-size: 14px; color: var(--text); margin-bottom: 14px; }
+  .io-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 760px) { .io-grid { grid-template-columns: 1fr; } }
+  .io-box { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .io-box .io-head {
+    font-size: 12px; font-weight: 700; padding: 5px 12px; color: #fff;
+  }
+  .io-head.in { background: #475569; }
+  .io-head.out { background: var(--primary-dark); }
+  .io-box pre {
+    background: var(--code-bg); color: var(--code-text); padding: 12px; font-size: 12px;
+    overflow-x: auto; font-family: "SF Mono", Menlo, Consolas, monospace; line-height: 1.55;
+    white-space: pre-wrap; word-break: break-all; margin: 0;
+  }
+  .io-box pre .cmt { color: #94a3b8; font-style: italic; }
+  .flow-nav { display: flex; gap: 10px; margin-top: 16px; }
+  .btn {
+    border: none; border-radius: 8px; padding: 9px 18px; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all .15s;
+  }
+  .btn.primary { background: var(--primary); color: #fff; }
+  .btn.primary:hover { background: var(--primary-dark); }
+  .btn.ghost { background: #eef2f7; color: var(--text); }
+  .btn.ghost:hover { background: #e2e8f0; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .flow-dots { display: flex; gap: 6px; align-items: center; margin-top: 12px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #cbd5e1; }
+  .dot.done { background: var(--primary); }
+
+  /* ===== Component table ===== */
+  table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 2px rgba(15,23,42,.05); }
+  th, td { text-align: left; padding: 11px 14px; font-size: 13.5px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: #f1f5f9; font-size: 12.5px; color: #475569; }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { font-weight: 700; white-space: nowrap; }
+  .pill { display: inline-block; font-size: 11px; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+  .pill.done { background: #dcfce7; color: #166534; }
+  .pill.soon { background: #fef3c7; color: #92400e; }
+  .pill.plan { background: #e2e8f0; color: #475569; }
+
+  /* ===== Challenges ===== */
+  .chal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+  .chal { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+  .chal h4 { font-size: 14px; margin-bottom: 4px; color: var(--accent-red); }
+  .chal p { font-size: 13px; color: var(--muted); }
+
+  /* ===== Roadmap ===== */
+  .road { display: flex; flex-direction: column; gap: 0; }
+  .road-item { display: flex; gap: 14px; align-items: flex-start; padding: 10px 0; position: relative; }
+  .road-item:not(:last-child)::before {
+    content: ""; position: absolute; left: 13px; top: 34px; bottom: -4px; width: 2px; background: #e2e8f0;
+  }
+  .road-dot { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #fff; }
+  .road-dot.done { background: var(--ok); }
+  .road-dot.soon { background: var(--warn); }
+  .road-dot.plan { background: var(--todo); }
+  .road-body b { font-size: 14px; }
+  .road-body .desc { font-size: 13px; color: var(--muted); }
+
+  footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 20px; }
+  .highlight { background: #fef9c3; padding: 0 3px; border-radius: 3px; }
+  .java-note {
+    margin-top: 14px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px;
+    padding: 12px 14px; font-size: 13px; color: #1e40af;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>微服务基础知识 · 可视化导览</h1>
+    <p>以你的 cloud-demo（商品 + 库存 + Nacos + Feign）为实例，把"微服务是什么、为什么拆、拆完出现哪些问题、一次请求怎么走"一次讲透。</p>
+    <div class="tags">
+      <span class="tag">Spring Cloud Alibaba 2023.0.3.2</span>
+      <span class="tag">Nacos 2.x</span>
+      <span class="tag">OpenFeign</span>
+      <span class="tag">MyBatis-Plus</span>
+      <span class="tag">Spring Boot 3.3.4</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- 01 单体 vs 微服务 -->
+  <section>
+    <h2><span class="no">01</span>单体架构 vs 微服务架构</h2>
+    <p class="sub">Java 类比：单体 = 一个巨型类（God Class）；微服务 = 按职责拆成多个类，类与类之间通过"接口"（HTTP/RPC）通信。</p>
+    <div class="grid2">
+      <div class="card">
+        <div class="vs-title"><span class="badge mono">单体 Monolith</span></div>
+        <ul class="vs-list">
+          <li class="mono">整个系统 = 一个进程、一个 jar、一个数据库</li>
+          <li class="mono">内部方法调用，不经过网络，性能好、开发简单</li>
+          <li class="mono">代码膨胀后：编译/启动慢，改一行要全量回归测试</li>
+          <li class="mono">无法按模块独立扩容（只能整体复制）</li>
+          <li class="mono">单点故障：一个模块内存溢出，拖垮全部</li>
+          <li class="mono">技术栈被锁定，无法局部替换旧模块</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="vs-title"><span class="badge micro">微服务 Microservices</span></div>
+        <ul class="vs-list">
+          <li>按业务职责拆成多个独立进程，各自独立部署</li>
+          <li>服务间通过 <b>HTTP/RPC</b> 调用（你项目里是 OpenFeign）</li>
+          <li>每个服务独立数据库，独立伸缩，独立出故障</li>
+          <li>改一个服务只重新部署它自己，其他不受影响</li>
+          <li>不同服务可以用不同技术栈、不同语言</li>
+          <li>代价：把"方法调用"变成了"网络调用"，引入一堆新问题（见 03）</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 架构总览 -->
+  <section>
+    <h2><span class="no">02</span>cloud-demo 架构总览</h2>
+    <p class="sub">实线 = 业务请求；虚线 = 服务注册/发现；点线 = 心跳（服务每 5 秒向 Nacos 报一次"我还活着"）。</p>
+    <div class="arch-box">
+      <div class="arch-row">
+        <div class="node n-client">客户端<small>浏览器 / APP / Postman</small></div>
+        <div class="arrow">→</div>
+        <div class="node n-gateway">API 网关 Gateway<small>P6 规划中 · 统一入口/鉴权/路由</small></div>
+        <div class="arrow">→</div>
+        <div class="node n-product">service-product<small>商品服务 · 8081</small></div>
+      </div>
+      <div class="arch-row">
+        <span class="arrow-label">查库存</span>
+        <div class="arrow">→</div>
+        <div class="node n-stock">service-stock<small>库存服务 · 8082</small></div>
+      </div>
+      <div class="arch-row">
+        <div class="node n-nacos">Nacos 注册中心<small>8848 · 服务花名册</small></div>
+      </div>
+      <div class="arch-row">
+        <div class="node n-db">product_db<small>商品表 product</small></div>
+        <div class="arrow">←</div>
+        <div class="node n-db">stock_db<small>库存表 stock</small></div>
+      </div>
+      <div class="legend">
+        <span class="line"><span class="solid"></span> HTTP 调用（Feign / 直连）</span>
+        <span class="line"><span class="dashed"></span> 注册 / 发现</span>
+        <span class="line"><span class="heartbeat"></span> 心跳续约</span>
+      </div>
+      <div class="java-note">
+        <b>Java 类比：</b>Nacos 就像学校的花名册——每个服务启动时"报到"（注册：姓名 = 服务名，住址 = IP:端口），
+        别人要调用它时"翻花名册"（服务发现）拿到最新地址，不用写死 IP。
+        心跳 = 定期点名，超时不点名的服务会被从花名册上除名。
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 一次请求的数据流 -->
+  <section>
+    <h2><span class="no">03</span>一次请求的完整数据流（真实入参/出参）</h2>
+    <p class="sub">以 <code>GET /api/product/1/detail</code>（商品详情带库存）为例，一步步点开看：每一步的输入输出都是你项目里真实发生的数据。</p>
+    <div class="card">
+      <div class="flow-stage">
+        <div class="flow-progress" id="flowProgress">第 1 / 7 步</div>
+        <span class="step-num active" id="stepNum">1</span>
+      </div>
+      <div class="step-card" id="stepCard">
+        <div class="step-title" id="stepTitle"></div>
+        <div class="step-desc" id="stepDesc"></div>
+        <div class="io-grid">
+          <div class="io-box">
+            <div class="io-head in">入参 / 触发</div>
+            <pre id="stepIn"></pre>
+          </div>
+          <div class="io-box">
+            <div class="io-head out">出参 / 结果</div>
+            <pre id="stepOut"></pre>
+          </div>
+        </div>
+      </div>
+      <div class="flow-nav">
+        <button class="btn ghost" id="prevBtn">← 上一步</button>
+        <button class="btn primary" id="nextBtn">下一步 →</button>
+      </div>
+      <div class="flow-dots" id="flowDots"></div>
+    </div>
+  </section>
+
+  <!-- 04 组件全家桶 -->
+  <section>
+    <h2><span class="no">04</span>拆了之后的新问题 → 组件全家桶</h2>
+    <p class="sub">拆分解决了单体的痛点，但把"方法调用"变成"网络调用"后，产生了下面 8 个新问题。微服务技术栈几乎全部是围绕这些问题发明的。</p>
+    <table>
+      <thead>
+        <tr><th>新问题</th><th>解决方案（组件）</th><th>Java 类比</th><th>你的进度</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>服务地址会变，怎么找？</td>
+          <td>服务注册发现 · Nacos</td>
+          <td>动态花名册 / 电话簿：报名字（服务名）就能查到地址</td>
+          <td><span class="pill done">✅ 已实现 P2</span></td>
+        </tr>
+        <tr>
+          <td>配置散落在每个服务里，怎么统一管理？</td>
+          <td>配置中心 · Nacos Config</td>
+          <td>一个集中式的 application.yml 仓库，改一处全广播</td>
+          <td><span class="pill done">✅ 已实现 P5</span></td>
+        </tr>
+        <tr>
+          <td>外部请求从哪个口进？鉴权/路由统一在哪做？</td>
+          <td>API 网关 · Spring Cloud Gateway</td>
+          <td>DispatcherServlet 前面的总 Filter：先统一处理，再转发给具体 Controller</td>
+          <td><span class="pill soon">🔄 P6 规划中</span></td>
+        </tr>
+        <tr>
+          <td>一个服务部署了 3 个实例，调用时选哪个？</td>
+          <td>负载均衡 · Spring Cloud LoadBalancer</td>
+          <td>轮询派活的调度员（Nginx 的"平均分配"思想）</td>
+          <td><span class="pill done">✅ Feign 内置</span></td>
+        </tr>
+        <tr>
+          <td>下游服务挂了/响应慢，如何不拖垮自己？</td>
+          <td>熔断/限流/降级 · Sentinel</td>
+          <td>断路器 + 水坝：快失败 + 防止洪水冲垮系统</td>
+          <td><span class="pill soon">🔄 P7 规划中</span></td>
+        </tr>
+        <tr>
+          <td>一次请求跨 3 个服务，出问题怎么排障？</td>
+          <td>链路追踪 · Micrometer Tracing / SkyWalking</td>
+          <td>贯穿整条调用链的 traceId：像快递单号，全程可查</td>
+          <td><span class="pill plan">⏳ P8</span></td>
+        </tr>
+        <tr>
+          <td>扣库存 + 减余额分属两个服务，怎么保证都成功/都失败？</td>
+          <td>分布式事务 · Seata</td>
+          <td>跨服务的事务管理器（AT/TCC/SAGA 模式）</td>
+          <td><span class="pill plan">⏳ P8</span></td>
+        </tr>
+        <tr>
+          <td>高并发下单，数据库扛不住怎么办？</td>
+          <td>消息队列 · RocketMQ</td>
+          <td>邮局：投递完就完事，对方有空再取，实现削峰解耦</td>
+          <td><span class="pill plan">规划中</span></td>
+        </tr>
+        <tr>
+          <td>服务多了，部署/伸缩/编排怎么办？</td>
+          <td>容器化 · Docker + K8s</td>
+          <td>集装箱（镜像）+ 港口调度（K8s）</td>
+          <td><span class="pill done">✅ Docker 已用</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 05 代价 -->
+  <section>
+    <h2><span class="no">05</span>微服务的代价（先泼冷水）</h2>
+    <p class="sub">微服务不是银弹。小团队 + 小项目用单体更划算；下面这些是它必然引入的成本。</p>
+    <div class="chal-grid">
+      <div class="chal"><h4>网络不可靠</h4><p>延迟、超时、重试、乱序。本地方法调用不会超时，远程调用会——所以要熔断、超时、重试。</p></div>
+      <div class="chal"><h4>分布式数据一致性</h4><p>一个业务跨多库，本地事务失效，需要最终一致性方案（本地消息表 / Seata / MQ）。</p></div>
+      <div class="chal"><h4>排障困难</h4><p>问题可能藏在 3 个服务里，需要链路追踪 + 统一日志 + 监控告警。</p></div>
+      <div class="chal"><h4>测试更复杂</h4><p>端到端测试要同时起多个服务；Mock 成本高。</p></div>
+      <div class="chal"><h4>运维成本翻倍</h4><p>要管注册中心、配置中心、网关、监控，还要容器化编排。</p></div>
+      <div class="chal"><h4>团队组织约束</h4><p>康威定律：服务边界最好贴合团队边界，拆错边界维护成本巨大。</p></div>
+    </div>
+  </section>
+
+  <!-- 06 路线 -->
+  <section>
+    <h2><span class="no">06</span>你的学习路线进度</h2>
+    <p class="sub">依据 cloud-demo README 的功能规划。</p>
+    <div class="card">
+      <div class="road">
+        <div class="road-item"><div class="road-dot done">✓</div><div class="road-body"><b>P1 项目骨架 + common-core</b><div class="desc">父工程统一依赖、统一返回 R、错误码枚举、全局异常</div></div></div>
+        <div class="road-item"><div class="road-dot done">✓</div><div class="road-body"><b>P2 双服务注册 Nacos</b><div class="desc">service-product(8081) / service-stock(8082)</div></div></div>
+        <div class="road-item"><div class="road-dot done">✓</div><div class="road-body"><b>P3 接入 MySQL（MyBatis-Plus）</b><div class="desc">两库两表，原子扣减防超卖</div></div></div>
+        <div class="road-item"><div class="road-dot done">✓</div><div class="road-body"><b>P4 Feign 远程调用</b><div class="desc">商品详情带库存、购买扣库存</div></div></div>
+        <div class="road-item"><div class="road-dot done">✓</div><div class="road-body"><b>P5 Nacos 配置中心</b><div class="desc">配置文件外置（datasource 等）、@RefreshScope 动态刷新</div></div></div>
+        <div class="road-item"><div class="road-dot soon">6</div><div class="road-body"><b>P6 Gateway 网关</b><div class="desc">统一入口、路由转发、鉴权</div></div></div>
+        <div class="road-item"><div class="road-dot soon">7</div><div class="road-body"><b>P7 Sentinel 限流</b><div class="desc">流量控制、熔断降级</div></div></div>
+        <div class="road-item"><div class="road-dot plan">8</div><div class="road-body"><b>P8 链路追踪 + Seata</b><div class="desc">traceId 贯穿全链路；跨服务事务</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>cloud-demo · 微服务基础知识可视化导览 · 数据流示例为真实接口入参/出参</footer>
+</div>
+
+<script>
+  const steps = [
+    {
+      title: "第 1 步 · 服务启动，向 Nacos 注册自己",
+      desc: "service-product 和 service-stock 启动时，通过 <code>@EnableDiscoveryClient</code> 主动向 Nacos 发送注册请求。Nacos 维护一份「服务花名册」。此后每 5 秒发一次心跳续约。",
+      in: 'POST /nacos/v1/ns/instance\n{\n  "serviceName": "service-product",\n  "ip": "127.0.0.1",\n  "port": 8081,\n  "ephemeral": true\n}',
+      out: 'Nacos 注册表（控制台可见）：\n├─ service-product → 127.0.0.1:8081\n└─ service-stock   → 127.0.0.1:8082'
+    },
+    {
+      title: "第 2 步 · 客户端请求商品详情接口",
+      desc: "浏览器请求商品详情（网关还在规划中，先直连商品服务 8081）。路由进入 <code>ProductController.detailWithStock(1)</code>。",
+      in: 'GET http://localhost:8081/api/product/1/detail\n（路径参数 id = 1）',
+      out: '进入 Controller：\ndetailWithStock(id = 1)\n→ 先查商品，再 Feign 查库存，最后合并返回'
+    },
+    {
+      title: "第 3 步 · 商品服务查本地库 product_db",
+      desc: "ProductServiceImpl.getById(1) 走 MyBatis-Plus 查 MySQL。这一步是本地进程内调用，快且可靠。",
+      in: 'SQL:\nSELECT * FROM product WHERE id = 1',
+      out: '{"id":1, "name":"《微服务从入门到实战》",\n "price":79.00, "description":"完整电商微服务教程",\n "createdAt":"2026-08-04 10:00:00"}'
+    },
+    {
+      title: "第 4 步 · Feign 先向 Nacos 要库存服务地址",
+      desc: "调用 <code>stockFeignClient.getStock(1)</code> 时，Feign 不会直接发请求，而是先问 Nacos「service-stock 现在在哪」，拿到真实地址后拼接 URL 再发 HTTP。这就是「服务发现」。",
+      in: 'GET http://127.0.0.1:8848/nacos/v1/ns/instance/list\n?serviceName=service-stock',
+      out: '{"hosts":[{"ip":"127.0.0.1","port":8082}]}\n→ 若有多台实例，由负载均衡器（LoadBalancer）选一台'
+    },
+    {
+      title: "第 5 步 · 商品服务 Feign 远程调用库存服务",
+      desc: "Feign 发起真正的 HTTP 请求。对商品服务而言，这就像调用本地方法（<code>StockFeignClient</code> 是个接口，Spring 帮你动态代理生成实现），但实际跨了进程、跨了网络。",
+      in: 'GET http://127.0.0.1:8082/api/stock/1\n（Feign 把方法签名翻译成上面的 HTTP 请求）',
+      out: '{"code":0, "msg":"成功",\n "data":{"id":1, "productId":1, "quantity":9}}'
+    },
+    {
+      title: "第 6 步 · 库存服务查本地库 stock_db",
+      desc: "库存服务的 StockController.getByProductId(1) → StockServiceImpl.getByProductId(1) 查 MySQL。",
+      in: 'SQL:\nSELECT * FROM stock WHERE product_id = 1',
+      out: '{"id":1, "productId":1, "quantity":9,\n "updatedAt":"2026-08-04 10:05:00"}'
+    },
+    {
+      title: "第 7 步 · 商品服务合并数据，返回给客户端",
+      desc: "商品服务把 product 和 stock 拼进一个 Map，以统一返回体 R 返回。前端一次拿到「商品 + 库存」，两个服务各司其职。",
+      in: '（组装返回体，无外部输入）',
+      out: '{\n  "code": 0,\n  "msg": "成功",\n  "data": {\n    "product": { "id":1, "name":"《微服务从入门到实战》", "price":79.00, "..." : "..." },\n    "stock":   { "id":1, "productId":1, "quantity":9 }\n  }\n}'
+    }
+  ];
+
+  let cur = 0;
+  const stepNum = document.getElementById('stepNum');
+  const stepTitle = document.getElementById('stepTitle');
+  const stepDesc = document.getElementById('stepDesc');
+  const stepIn = document.getElementById('stepIn');
+  const stepOut = document.getElementById('stepOut');
+  const progress = document.getElementById('flowProgress');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const dotsBox = document.getElementById('flowDots');
+
+  steps.forEach((_, i) => {
+    const d = document.createElement('span');
+    d.className = 'dot' + (i === 0 ? ' done' : '');
+    d.id = 'dot-' + i;
+    dotsBox.appendChild(d);
+  });
+
+  function render() {
+    const s = steps[cur];
+    stepNum.textContent = cur + 1;
+    stepNum.classList.add('active');
+    stepTitle.textContent = s.title;
+    stepDesc.innerHTML = s.desc;
+    stepIn.textContent = s.in;
+    stepOut.textContent = s.out;
+    progress.textContent = '第 ' + (cur + 1) + ' / ' + steps.length + ' 步';
+    prevBtn.disabled = cur === 0;
+    nextBtn.disabled = cur === steps.length - 1;
+    nextBtn.textContent = cur === steps.length - 1 ? '已完成 ✓' : '下一步 →';
+    steps.forEach((_, i) => {
+      document.getElementById('dot-' + i).className = 'dot' + (i <= cur ? ' done' : '');
+    });
+  }
+
+  prevBtn.addEventListener('click', () => { if (cur > 0) { cur--; render(); } });
+  nextBtn.addEventListener('click', () => { if (cur < steps.length - 1) { cur++; render(); } });
+
+  render();
+</script>
+</body>
+</html>
