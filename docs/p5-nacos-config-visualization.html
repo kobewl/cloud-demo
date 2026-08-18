@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P5 Nacos 配置中心 · 数据流可视化（cloud-demo 视角）</title>
+<style>
+  :root {
+    --primary: #2563eb; --primary-dark: #1e40af; --bg: #f6f8fa; --card: #ffffff;
+    --border: #e2e8f0; --text: #1e293b; --muted: #64748b; --ok: #16a34a;
+    --warn: #d97706; --todo: #94a3b8; --code-bg: #0f172a; --code-text: #e2e8f0;
+    --accent-red: #dc2626; --accent-blue: #2563eb; --accent-green: #16a34a;
+    --accent-purple: #7c3aed; --accent-orange: #ea580c; --accent-cyan: #0891b2;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6; padding-bottom: 80px;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+  header {
+    background: linear-gradient(135deg, #312e81 0%, #6d28d9 55%, #7c3aed 100%);
+    color: #fff; padding: 44px 0 36px; margin-bottom: 36px;
+  }
+  header h1 { font-size: 28px; font-weight: 700; }
+  header p { opacity: .92; margin-top: 8px; font-size: 15px; }
+  .tags { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.35); padding: 3px 10px; border-radius: 999px; font-size: 12px; }
+
+  section { margin-bottom: 44px; }
+  h2 { font-size: 21px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
+  h2 .no { background: var(--primary); color: #fff; width: 30px; height: 30px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .sub { color: var(--muted); font-size: 14px; margin-bottom: 18px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; box-shadow: 0 1px 2px rgba(15,23,42,.05); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  @media (max-width: 860px) { .grid3 { grid-template-columns: 1fr; } }
+
+  pre {
+    background: var(--code-bg); color: var(--code-text); border-radius: 10px;
+    padding: 14px 16px; font-size: 12.5px; overflow-x: auto; line-height: 1.55;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+  }
+  pre .c { color: #94a3b8; }
+  pre .ok { color: #4ade80; }
+  pre .warn { color: #fbbf24; }
+
+  .pill { font-size: 12px; padding: 2px 10px; border-radius: 999px; display: inline-block; }
+  .pill.done { background: #dcfce7; color: #166534; }
+  .pill.warn { background: #fef3c7; color: #92400e; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; background: var(--card); }
+  th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
+  th { background: #f1f5f9; font-weight: 600; }
+
+  .flow { display: flex; align-items: stretch; justify-content: center; gap: 0; flex-wrap: wrap; }
+  .fnode { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; text-align: center; min-width: 130px; }
+  .fnode b { display: block; font-size: 13px; }
+  .fnode small { color: var(--muted); font-size: 11px; }
+  .fnode.n1 { border-top: 4px solid var(--accent-cyan); }
+  .fnode.n2 { border-top: 4px solid var(--accent-purple); }
+  .fnode.n3 { border-top: 4px solid var(--accent-blue); }
+  .fnode.n4 { border-top: 4px solid var(--accent-orange); }
+  .fnode.n5 { border-top: 4px solid var(--accent-green); }
+  .farrow { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 6px; color: var(--muted); font-size: 18px; }
+  .farrow small { font-size: 10px; color: var(--muted); white-space: nowrap; }
+
+  .steps { position: relative; }
+  .step { display: none; }
+  .step.active { display: block; }
+  .step-nav { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .step-nav button {
+    border: 1px solid var(--border); background: #fff; color: var(--text); border-radius: 8px;
+    padding: 6px 12px; font-size: 13px; cursor: pointer;
+  }
+  .step-nav button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+  .tip { border-left: 3px solid var(--warn); background: #fffbeb; padding: 10px 14px; border-radius: 0 8px 8px 0; font-size: 13.5px; margin: 12px 0; }
+  .okbox { border-left: 3px solid var(--ok); background: #f0fdf4; padding: 10px 14px; border-radius: 0 8px 8px 0; font-size: 13.5px; margin: 12px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>P5 Nacos 配置中心 · 数据流可视化</h1>
+    <p>配置怎么从 Nacos 下发到服务，又怎么做到"改配置不重启，实时生效"？以 cloud-demo 真实接口出入参演示。</p>
+    <div class="tags">
+      <span class="tag">Spring Cloud Alibaba 2023.0.3.2</span>
+      <span class="tag">Nacos Server 3.2.1</span>
+      <span class="tag">spring.config.import</span>
+      <span class="tag">@RefreshScope</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- 01 一句话 -->
+  <section>
+    <h2><span class="no">01</span>这次做了什么</h2>
+    <p class="sub">把两个服务的 <b>数据库连接、MyBatis-Plus、业务开关</b> 等配置从本地 yml 挪到 Nacos 配置中心，并验证动态刷新。</p>
+    <div class="grid2">
+      <div class="card">
+        <div class="vs-title">改造前</div>
+        <pre>application.yml（本地）：
+├─ server.port       8081
+├─ spring.datasource  ← 写死在包里
+├─ mybatis-plus       ← 写死在包里
+└─ shop.notice       ← 写死在包里
+改配置 = 重新打包 + 逐个重启</pre>
+      </div>
+      <div class="card">
+        <div class="vs-title">改造后</div>
+        <pre>application.yml（本地，只留启动必需）：
+├─ server.port       8081
+├─ application.name  service-product
+└─ spring.config.import
+     └─ optional:nacos:service-product.yaml?refreshEnabled=true
+
+Nacos 配置中心（service-product.yaml）：
+├─ spring.datasource  ← 外置，控制台可改
+├─ mybatis-plus       ← 外置
+└─ shop.notice        ← 外置，改完秒级生效</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 数据流 -->
+  <section>
+    <h2><span class="no">02</span>一次配置下发的完整数据流</h2>
+    <p class="sub">注意：箭头 3 和 4 是两条"链路"——启动时拉一次（HTTP），之后变更靠推送（gRPC 长连接监听）。</p>
+    <div class="card">
+      <div class="flow">
+        <div class="fnode n1"><b>开发者</b><small>Nacos 控制台<br>改配置 → 发布</small></div>
+        <div class="farrow"><span>→</span><small>写入</small></div>
+        <div class="fnode n2"><b>Nacos Server 3.2.1</b><small>配置存储 + 变更推送</small></div>
+        <div class="farrow"><span>⇄</span><small>gRPC 长连接<br>监听变更</small></div>
+        <div class="fnode n3"><b>NacosClient 2.3.x</b><small>服务内嵌，启动拉取</small></div>
+        <div class="farrow"><span>→</span><small>注入</small></div>
+        <div class="fnode n4"><b>Spring Environment</b><small>PropertySource 合并</small></div>
+        <div class="farrow"><span>→</span><small>@Value</small></div>
+        <div class="fnode n5"><b>@RefreshScope Bean</b><small>Controller 重建<br>返回新值</small></div>
+      </div>
+      <div class="tip">
+        <b>Java 类比</b>：`spring.config.import` ≈ 往 Spring `Environment` 的 `PropertySource` 链上再挂一个<b>远程属性源</b>；
+        `@RefreshScope` ≈ 对单个 Bean 的定向 `refresh()`（重建 + 重新注入 `@Value`），不是整个容器重启。
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 分步真实数据 -->
+  <section>
+    <h2><span class="no">03</span>真实验证回放（点击步骤切换）</h2>
+    <p class="sub">以下全部是本次实测的真实入参/出参。</p>
+    <div class="card steps" id="steps">
+      <div class="step active">
+        <pre><span class="c"># ① 启动日志：服务启动时从 Nacos 拉取配置（一次成功）</span>
+[Nacos Config] Load config[dataId=service-product.yaml, group=DEFAULT_GROUP] success
+[Nacos Config] Listening config: dataId=service-product.yaml, group=DEFAULT_GROUP
+<span class="c"># 说明：success = 拉取成功；Listening = 已建立 gRPC 监听，后续变更主动推送</span></pre>
+      </div>
+      <div class="step">
+        <pre><span class="c"># ② 首次调用：notice 接口返回 Nacos 里的配置值（datasource 也来自 Nacos，DB 正常）</span>
+GET http://localhost:8081/api/config/notice
+<span class="ok">→ {"code":0,"msg":"成功","data":"【动态配置】商品服务公告：全场图书 8 折，满 99 包邮"}</span>
+
+GET http://localhost:8081/api/product/list
+<span class="ok">→ {"code":0,"msg":"成功","data":[{"id":2084199084315619330,"name":"《微服务从入门到实战》","price":79.00,"description":"完整电商微服务教程",...}]}</span></pre>
+      </div>
+      <div class="step">
+        <pre><span class="c"># ③ 在 Nacos 控制台把 shop.notice 改为下面的值，点发布（服务不重启）</span>
+shop:
+  notice: "【动态配置】商品服务公告：全场图书 8 折（动态刷新验证成功，未重启服务！）"
+
+<span class="c"># 等待约 10 秒（Nacos 推送 → RefreshScope 重建 Bean）</span>
+GET http://localhost:8081/api/config/notice
+<span class="ok">→ {"code":0,"msg":"成功","data":"【动态配置】商品服务公告：全场图书 8 折（动态刷新验证成功，未重启服务！）"}</span></pre>
+      </div>
+      <div class="step">
+        <pre><span class="c"># ④ 反向验证：把配置重置回原值，发布后再查</span>
+GET http://localhost:8081/api/config/notice
+<span class="ok">→ {"code":0,"msg":"成功","data":"【动态配置】商品服务公告：全场图书 8 折，满 99 包邮"}</span>
+
+<span class="c"># ⑤ 原 Feign 链路不受影响（商品详情带库存）</span>
+GET http://localhost:8081/api/product/2084199084315619330/detail
+<span class="ok">→ {"code":0,"data":{"product":{"id":2084199084315619330,"name":"《微服务从入门到实战》","price":79.00},...},"stock":{"productId":2084199084315619330,"quantity":0}}</span></pre>
+      </div>
+      <div class="step-nav" id="stepNav"></div>
+    </div>
+  </section>
+
+  <!-- 04 版本坑 -->
+  <section>
+    <h2><span class="no">04</span>版本关键点（最容易踩的坑）</h2>
+    <div class="grid3">
+      <div class="card">
+        <div class="vs-title">1. bootstrap 已废弃 <span class="pill warn">2023.0.1.3+</span></div>
+        <p style="font-size:13.5px">SCA 2023.0.1.3 起不再兼容 bootstrap 方式。网上大多数教程还是
+        <code>bootstrap.yml</code> 方案，在你的版本<b>直接不生效</b>。必须用
+        <code>spring.config.import</code> 写在 <code>application.yml</code> 里。</p>
+      </div>
+      <div class="card">
+        <div class="vs-title">2. Nacos 3.x OpenAPI 大改 <span class="pill warn">Server 3.2.1</span></div>
+        <p style="font-size:13.5px">发布配置要用 <code>POST /nacos/v3/admin/cs/config</code>，
+        参数是 <code>groupName</code>（不是 group），鉴权带 <code>Authorization: Bearer &lt;token&gt;</code>。
+        v1/v2 的 <code>cs/config</code> 路径已 404。</p>
+      </div>
+      <div class="card">
+        <div class="vs-title">3. 客户端兼容性 <span class="pill done">实测通过</span></div>
+        <p style="font-size:13.5px">SCA 2023.0.3.2 内置 nacos-client 2.3.x，服务端 3.2.1。
+        官方兼容性表确认 <b>3.x 服务端兼容 2.x 客户端</b>，本项目已实测
+        配置拉取 + 动态刷新均正常。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 结构 -->
+  <section>
+    <h2><span class="no">05</span>配置即代码（改了要同步 Nacos）</h2>
+    <div class="card">
+      <pre>docs/nacos-config/
+├── service-product.yaml   <span class="c"># Data ID: service-product.yaml</span>
+└── service-stock.yaml     <span class="c"># Data ID: service-stock.yaml</span>
+
+<span class="c"># 改动流程：编辑源文件 → Nacos 控制台(18080) 同步 → 服务自动生效</span></pre>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  const steps = document.querySelectorAll("#steps .step");
+  const nav = document.getElementById("stepNav");
+  const titles = ["① 启动拉取", "② 首次调用", "③ 动态刷新（正向）", "④ 反向验证 + Feign 回归"];
+  titles.forEach((t, i) => {
+    const b = document.createElement("button");
+    b.textContent = t;
+    b.className = i === 0 ? "active" : "";
+    b.onclick = () => {
+      steps.forEach(s => s.classList.remove("active"));
+      steps[i].classList.add("active");
+      nav.querySelectorAll("button").forEach(x => x.classList.remove("active"));
+      b.classList.add("active");
+    };
+    nav.appendChild(b);
+  });
+</script>
+
+</body>
+</html>
