@@ -23,6 +23,11 @@ public class StockController {
     /** 新增/初始化库存（给商品配库存，测试用） */
     @PostMapping
     public R<Void> save(@RequestBody Stock stock) {
+        // 一个商品只能有一条库存记录（product_id 唯一索引）。
+        // 先查再插，重复配库存时返回明确提示，而不是让数据库抛重复键异常
+        if (stockService.getByProductId(stock.getProductId()) != null) {
+            throw new BusinessException(ResultCode.STOCK_EXISTS);
+        }
         stock.setUpdatedAt(LocalDateTime.now());
         stockService.save(stock);
         return R.ok();
