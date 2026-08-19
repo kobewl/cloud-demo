@@ -1,7 +1,17 @@
 package com.wangliang.cloud.gateway.config;
 
+import com.alibaba.csp.sentinel.adapter.gateway.common.SentinelGatewayConstants;
+import com.alibaba.csp.sentinel.adapter.gateway.common.rule.GatewayFlowRule;
+import com.alibaba.csp.sentinel.adapter.gateway.common.rule.GatewayRuleManager;
+import com.alibaba.csp.sentinel.adapter.gateway.sc.callback.GatewayCallbackManager;
 import jakarta.annotation.PostConstruct;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.web.reactive.function.server.ServerResponse;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Sentinel 网关限流配置（P7）。
@@ -20,18 +30,29 @@ public class SentinelGatewayConfig {
     /**
      * 注册网关限流规则 + 被限流时的降级返回。
      * @PostConstruct：Gateway 应用启动完成后自动执行一次。
-     * TODO(王栋)：补全方法体
-     *   ① 用 GatewayFlowRule 定义两条限流规则：
-     *      - "order-route"：QPS 上限 2，窗口 1 秒（下单限严）
-     *      - "product-route"：QPS 上限 5，窗口 1 秒
-     *   ② GatewayRuleManager.loadRules(rules) 加载规则
-     *   ③ GatewayCallbackManager.setBlockHandler(...) 注册降级处理：
-     *      被限流时返回 JSON：{"code":429,"msg":"请求过于频繁，请稍后再试"}
-     *      （提示：BlockRequestHandler 是函数式接口，可写 lambda；
-     *       返回用 ServerResponse.status(429).contentType(APPLICATION_JSON).bodyValue(...)）
      */
     @PostConstruct
     public void init() {
-        // TODO(王栋)：补全
+        // 1 定义限流规则：每条路由 = 一个独立资源，各设各的 QPS 上限
+        Set<GatewayFlowRule> rules = new HashSet<>();
+        rules.add(new GatewayFlowRule("order-route")
+                .setResourceMode(SentinelGatewayConstants.RESOURCE_MODE_ROUTE_ID)
+                .setCount(2)
+                .setIntervalSec(1));
+
+        rules.add(new GatewayFlowRule("product-route")
+                .setResourceMode(SentinelGatewayConstants.RESOURCE_MODE_ROUTE_ID)
+                .setCount(5)
+                .setIntervalSec(1));
+
+        // 2 把规则加载进 sentinel
+        GatewayRuleManager.loadRules(rules);
+
+        // 3. 被限流时的降级处理，返回 http 429 + json
+        GatewayCallbackManager.setBlockHandler((exchange, t) ->
+                ServerResponse.status(HttpStatus.TOO_MANY_REQUESTS)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue("{\"code\":429,\"msg\":\"请求过于频繁，请稍后再试\"}"));
+
     }
 }

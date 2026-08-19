@@ -9,12 +9,12 @@ spring:
       discovery:
         # NACOS_ADDR 覆盖：跨机器部署时传 -DNACOS_ADDR=<Nacos所在机器IP>:8848
         # NACOS_IP 覆盖：多网卡机器传 -DNACOS_IP=<本机局域网IP>，防止注册成虚拟网卡地址
-        server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+        server-addr: ${NACOS_ADDR:10.110.0.170:8848}
         ip: ${NACOS_IP:}
         username: nacos
         password: nacos
       config:
-        server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+        server-addr: ${NACOS_ADDR:10.110.0.170:8848}
         username: nacos
         password: nacos
   config:

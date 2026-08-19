@@ -8,12 +8,12 @@ spring:
     nacos:
       discovery:
         # NACOS_ADDR 覆盖：跨机器部署时传 -DNACOS_ADDR=<Nacos所在机器IP>:8848
-        server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+        server-addr: ${NACOS_ADDR:10.110.0.170:8848}
         ip: ${NACOS_IP:}
         username: nacos
         password: nacos
       config:
-        server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+        server-addr: ${NACOS_ADDR:10.110.0.170:8848}
         username: nacos
         password: nacos
     sentinel:
@@ -22,11 +22,7 @@ spring:
       filter:
         enabled: false
   config:
-    # 配置中心入口（P5 约定）：路由等业务配置外置到 Nacos 的 gateway.yaml。
-    # optional: 前缀 = Nacos 里没有这份配置也能启动（不快速失败，路由为空而已）。
+    # 配置中心入口：路由配置外置到 Nacos（Data ID: gateway.yaml）
+    # optional: 前缀 = Nacos 里没有这份配置也能启动（不快速失败）
     import:
       - optional:nacos:gateway.yaml?refreshEnabled=true
-
-# 说明：路由配置（spring.cloud.gateway.routes）已外置到 Nacos（docs/nacos-config/gateway.yaml）。
-# 本文件只保留启动必需项：端口、服务名、Nacos 地址、Sentinel 基础开关。
-# 路由变更流程：改 docs/nacos-config/gateway.yaml -> 同步 Nacos -> 网关刷新后自动生效。
