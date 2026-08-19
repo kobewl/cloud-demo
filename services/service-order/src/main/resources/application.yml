@@ -23,3 +23,21 @@ spring:
     # 配置中心入口（P5 约定：业务/环境配置外置到 Nacos，本地只留启动必需项）
     import:
       - optional:nacos:service-order.yaml?refreshEnabled=true
+
+# ============ Seata 分布式事务客户端（P8 阶段 A） ============
+seata:
+  application-id: ${spring.application.name}   # 业务服务身份：连 TC 时报备"我是谁"
+  tx-service-group: my_tx_group                # 事务分组：客户端"会员体系"名（三服务必须一致）
+  service:
+    vgroup-mapping:
+      my_tx_group: default                     # 会员体系 → Nacos 里的集群名（三层寻址第②层）
+  registry:
+    type: nacos                                # 指路：去 Nacos 找 TC（seata-server 注册的服务）
+    nacos:
+      server-addr: ${NACOS_ADDR:10.110.0.170:8848}
+      username: nacos
+      password: nacos
+      group: cloud-demo                        # 关键！必须和 seata-server 注册的 Nacos 分组一致
+      cluster: default                         # 对应 vgroup-mapping 里的 default
+  config:
+    type: file                                 # 自身配置走本地 file，避免"鸡生蛋"（连TC的配置还要先拉配置中心）
