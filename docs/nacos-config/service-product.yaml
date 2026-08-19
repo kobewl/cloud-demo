@@ -1,5 +1,5 @@
 # =====================================================================
-# service-product 配置中心配置（Data ID: service-product.yaml, Group: DEFAULT_GROUP）
+# service-product 配置中心配置（Data ID: service-product.yaml, Group: cloud-demo）
 #
 # 使用说明：
 #   · 本文件是 Nacos 配置中心里该 Data ID 的"源文件"（配置即代码）。

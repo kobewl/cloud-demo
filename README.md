@@ -77,11 +77,16 @@ http://localhost:18080/
 
 - 每个服务的**业务/环境配置**（数据库连接、MyBatis-Plus、自定义项）已外置到 Nacos，
   本地 `application.yml` 只保留端口、服务名、Nacos 地址等启动必需项。
+- 所有配置集中在 **`cloud-demo` 分组**（Group），不再使用默认分组：
+  `application.yml` 里通过 `spring.cloud.nacos.config.group: cloud-demo` 指定，
+  服务注册/发现同样用 `spring.cloud.nacos.discovery.group: cloud-demo`。
 - 配置的"源文件"在 `docs/nacos-config/`（配置即代码）：
-  - `service-product.yaml` → 商品服务（Data ID: `service-product.yaml`）
-  - `service-stock.yaml` → 库存服务（Data ID: `service-stock.yaml`）
+  - `service-product.yaml` → 商品服务（Data ID: `service-product.yaml`, Group: `cloud-demo`）
+  - `service-stock.yaml` → 库存服务（Data ID: `service-stock.yaml`, Group: `cloud-demo`）
+  - `service-order.yaml` → 订单服务（Data ID: `service-order.yaml`, Group: `cloud-demo`）
+  - `gateway.yaml` → 网关（Data ID: `gateway.yaml`, Group: `cloud-demo`）
 - **改配置流程**：编辑 `docs/nacos-config/` 里的源文件 → 同步到 Nacos 控制台
-  （配置管理 → 配置列表 → 编辑 → 发布）→ 服务通过 `@RefreshScope` **无需重启**即可生效。
+  （配置管理 → 配置列表 → 选择 `cloud-demo` 分组 → 编辑 → 发布）→ 服务通过 `@RefreshScope` **无需重启**即可生效。
 - 验证动态刷新：商品服务 `GET /api/config/notice` 返回 `shop.notice` 配置，
   改掉 Nacos 里该值并发布，再访问接口即可看到新值。
 

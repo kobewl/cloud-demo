@@ -13,10 +13,12 @@ spring:
         ip: ${NACOS_IP:}
         username: nacos
         password: nacos
+        group: cloud-demo
       config:
         server-addr: ${NACOS_ADDR:10.110.0.170:8848}
         username: nacos
         password: nacos
+        group: cloud-demo
   config:
     # 配置中心入口（Spring Boot 2.4+ 标准方式，bootstrap 已废弃）：
     # optional: 前缀 = Nacos 里没有这份配置也能启动（不快速失败）；

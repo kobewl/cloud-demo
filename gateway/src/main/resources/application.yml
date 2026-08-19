@@ -12,10 +12,12 @@ spring:
         ip: ${NACOS_IP:}
         username: nacos
         password: nacos
+        group: cloud-demo
       config:
         server-addr: ${NACOS_ADDR:10.110.0.170:8848}
         username: nacos
         password: nacos
+        group: cloud-demo
     sentinel:
       # 网关场景必须关闭 Sentinel 的 Servlet 过滤器适配：
       # 否则控制台上会出现 URL 资源，且与网关限流适配器冲突

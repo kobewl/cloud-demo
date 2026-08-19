@@ -13,10 +13,12 @@ spring:
         ip: ${NACOS_IP:}
         username: nacos
         password: nacos
+        group: cloud-demo
       config:
         server-addr: ${NACOS_ADDR:10.110.0.170:8848}
         username: nacos
         password: nacos
+        group: cloud-demo
   config:
     # 配置中心入口（P5 约定：业务/环境配置外置到 Nacos，本地只留启动必需项）
     import:
