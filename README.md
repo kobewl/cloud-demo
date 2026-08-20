@@ -23,7 +23,8 @@
 - [x] P7+ Sentinel 限流规则外置 Nacos 数据源（`gateway-flow.json` 动态热更新，改 QPS 不重启网关，秒级生效）
 - [x] 订单服务 service-order（下单：Feign 查商品 → 扣库存 → 落订单，失败补偿回补库存）
 - [x] P8 Seata 分布式事务（`@GlobalTransactional` 自动回滚，替换手写补偿）
-- [ ] P9 链路追踪（后期）
+- [x] 前端控制台 frontend（Vue 3 + Element Plus：商品管理、配库存、下单、订单列表）
+- [x] P9 链路追踪（Micrometer Tracing + Zipkin，看网关→订单→商品→库存完整调用链）
 
 ## 🏗️ 项目结构
 
@@ -37,6 +38,7 @@ cloud-demo/                          # 父工程：统一依赖版本，不写�
 │   ├── service-stock/               # 📦 库存服务（被商品服务 Feign 调用）
 │   └── service-order/               # 📦 订单服务（下单扣库存，跨服务调用）
 ├── gateway/                         # 🚪 API 网关（统一入口 + 路由转发）
+├── frontend/                        # 🖥️ 前端控制台（Vue 3 + Element Plus）
 └── docs/superpowers/specs/          # 设计文档
 ```
 
@@ -55,8 +57,10 @@ cloud-demo/                          # 父工程：统一依赖版本，不写�
 | Nacos 控制台 | 18080 | nacos/nacos | 浏览器访问 |
 | Nacos 服务端 | 8848 | - | 程序注册/配置 |
 | MySQL | 3306 | root/123456 | product_db / stock_db |
+| Zipkin | 9411 | - | 链路追踪 UI（P9） |
 
 > Nacos 启动命令：`docker start nacos`（数据已持久化到数据卷）
+> Zipkin 启动命令：`docker start zipkin`（P9 链路追踪）
 
 ## 📖 使用指南
 
@@ -74,6 +78,48 @@ mvn -pl services/service-stock spring-boot:run
 # 4. 浏览器打开 Nacos 控制台，观察服务注册
 http://localhost:18080/
 ```
+
+## 🖥️ 前端控制台（frontend/）
+
+用 Vue 3 + TypeScript + Vite + Element Plus 搭建的操作界面，可视化操作微服务的完整链路。
+
+### 功能
+- 📦 **商品列表**：查看、新增、删除商品
+- 🔍 **商品详情**：查看商品 + 当前库存，一键下单（走 Seata 分布式事务）
+- 🗃️ **配库存**：给商品初始化库存（一个商品只能配一条）
+- 🧾 **订单列表**：查看所有订单（下单成功后自动出现）
+- 📢 **顶栏公告**：展示 Nacos 配置中心的 `shop.notice`，演示"改配置不重启、动态刷新"
+
+### 启动
+```bash
+# 1. 先启动后端（网关 + 三个业务服务，见上面的"使用指南"）
+
+# 2. 进入前端目录，安装依赖（首次）
+cd frontend
+npm install
+
+# 3. 启动开发服务器（Vite 会把 /api 代理到网关 8080）
+npm run dev
+# 浏览器打开 http://localhost:5173
+```
+
+### 常用命令
+```bash
+npm run dev         # 启动开发服务器（带热更新）
+npm run build       # 生产构建（输出到 frontend/dist/）
+npm run type-check  # 类型检查（vue-tsc）
+```
+
+### 技术要点
+- **跨域方案**：开发时用 Vite 的 `server.proxy` 把 `/api` 请求转发到网关 `8080`，
+  前端与后端"同源"，无需后端开 CORS（`vite.config.ts`）。
+- **统一返回解包**：后端返回 `R{ code, msg, data }`，前端在 `src/api/request.ts`
+  用 Axios 拦截器统一解包——成功返回 `data`，失败弹 `msg`，全站只写一次。
+- **雪花 ID 精度**：后端雪花算法生成的 19 位 ID 超出 JS `number` 精确范围，
+  已在 `common-core` 加 Jackson 配置把 `Long` 序列化成字符串，
+  前端 ID 统一用 `string`，避免删除/查询时"张冠李戴"。
+- **分层结构**：`api/`（接口封装）→ `stores/`（Pinia 状态）→ `views/`（页面），
+  职责单一、符合 SOLID。
 
 ## ⚙️ 配置中心说明（P5）
 

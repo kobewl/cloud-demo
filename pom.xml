@@ -52,6 +52,14 @@
                 <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
                 <version>${mybatis-plus.version}</version>
             </dependency>
+            <!-- Feign Micrometer（P9）：让 Feign 调用参与 Micrometer Tracing。
+                 feign-micrometer 在 spring-cloud-openfeign-core 里是 optional 依赖不自动传递，
+                 必须显式引入；版本 13.3 与 feign-core 13.3 对齐（由 OpenFeign 4.1.3 锁定）。 -->
+            <dependency>
+                <groupId>io.github.openfeign</groupId>
+                <artifactId>feign-micrometer</artifactId>
+                <version>13.3</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

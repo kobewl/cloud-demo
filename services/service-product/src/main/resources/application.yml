@@ -45,3 +45,13 @@ seata:
       cluster: default                         # 对应 vgroup-mapping 里的 default
   config:
     type: file                                 # 自身配置走本地 file，避免"鸡生蛋"（连TC的配置还要先拉配置中心）
+
+# ============ P9 链路追踪：全采样 + Zipkin 上报地址 ============
+# tracing 属启动必需的基础设施观测配置，放本地（不放 Nacos），服务一启动就能上报。
+management:
+  tracing:
+    sampling:
+      probability: 1.0              # 学习项目请求量小，全采样保证每次请求都能看到
+  zipkin:
+    tracing:
+      endpoint: http://${ZIPKIN_ADDR:10.110.0.170:9411}/api/v2/spans
