@@ -2,6 +2,12 @@ import axios, { type AxiosRequestConfig } from 'axios'
 import { ElMessage } from 'element-plus'
 import type { R } from '@/types'
 
+/** 自定义请求配置：在 AxiosRequestConfig 基础上扩展 */
+interface RequestConfig extends AxiosRequestConfig {
+  /** 静默模式：业务失败时不弹全局错误提示（用于"查询接口可能无数据"的场景） */
+  silent?: boolean
+}
+
 /**
  * Axios 统一封装：全站所有 HTTP 请求都从这里走。
  *
@@ -25,8 +31,9 @@ http.interceptors.response.use(
       response.data = r.data
       return response
     }
-    // 业务失败：弹出后端返回的 msg，并中断 Promise 链
-    ElMessage.error(r.msg || '请求失败')
+    // 业务失败：默认弹后端返回的 msg；静默模式下只中断 Promise 链，不弹提示
+    const silent = (response.config as RequestConfig).silent
+    if (!silent) ElMessage.error(r.msg || '请求失败')
     return Promise.reject(new Error(r.msg || '请求失败'))
   },
   (error) => {
@@ -45,9 +52,9 @@ http.interceptors.response.use(
   },
 )
 
-/** GET 请求：返回解包后的业务数据 T */
-export function get<T>(url: string, params?: object): Promise<T> {
-  return http.get(url, { params }).then((res) => res.data as T)
+/** GET 请求：返回解包后的业务数据 T（silent=true 时业务失败不弹全局提示） */
+export function get<T>(url: string, params?: object, silent = false): Promise<T> {
+  return http.get(url, { params, silent } as RequestConfig).then((res) => res.data as T)
 }
 
 /** POST 请求：body 用 JSON 提交 */

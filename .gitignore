@@ -38,3 +38,6 @@ build/
 node_modules/
 frontend/dist/
 *.local
+
+### ZCode 工具内部文件（会话计划等，非项目代码） ###
+.zcode/
