@@ -1,0 +1,16 @@
+[
+  {
+    "resource": "order-route",
+    "resourceMode": 0,
+    "grade": 1,
+    "count": 2,
+    "intervalSec": 1
+  },
+  {
+    "resource": "product-route",
+    "resourceMode": 0,
+    "grade": 1,
+    "count": 5,
+    "intervalSec": 1
+  }
+]

@@ -23,6 +23,20 @@ spring:
       # 否则控制台上会出现 URL 资源，且与网关限流适配器冲突
       filter:
         enabled: false
+      # ============ 限流规则数据源（P8 改造）：规则从 Nacos 动态拉取 ============
+      # 原理：启动时从 Nacos 拉 gateway-flow.json，转成 GatewayFlowRule 交给
+      #       GatewayRuleManager；同时监听 Nacos 配置变更，改 QPS 不重启网关，秒级生效。
+      #       （和 @RefreshScope 同一思想，只是刷新对象从 Bean 换成限流规则）
+      datasource:
+        gateway-flow:                    # 数据源名字，随意
+          nacos:
+            server-addr: ${NACOS_ADDR:10.110.0.170:8848}
+            username: nacos
+            password: nacos
+            data-id: gateway-flow.json   # 规则 JSON 的 Data ID（源文件 docs/nacos-config/gateway-flow.json）
+            group-id: cloud-demo         # ★ 必须！与 Nacos 里所有配置的分组一致（不是默认 DEFAULT_GROUP）
+            data-type: json              # 配置内容是 JSON
+            rule-type: gw-flow           # ★ 网关限流规则类型（GatewayFlowRule），不是普通 flow
   config:
     # 配置中心入口：路由配置外置到 Nacos（Data ID: gateway.yaml）
     # optional: 前缀 = Nacos 里没有这份配置也能启动（不快速失败）

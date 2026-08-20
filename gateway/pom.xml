@@ -48,6 +48,17 @@
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-alibaba-sentinel-gateway</artifactId>
         </dependency>
+        <!-- Sentinel 规则数据源（P8 改造）：从 Nacos 动态拉取限流规则，改 QPS 不重启网关
+             规则 JSON 见 docs/nacos-config/gateway-flow.json（配置即代码）
+             starter 只提供数据源工厂，真正的 NacosDataSource 实现类在 sentinel-datasource-nacos -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-alibaba-sentinel-datasource</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.csp</groupId>
+            <artifactId>sentinel-datasource-nacos</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

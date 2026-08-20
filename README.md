@@ -20,8 +20,10 @@
 - [x] P5 Nacos 配置中心（配置文件外置 + 动态刷新）
 - [x] P6 Gateway 网关（统一入口 + 路由转发 + 路由配置外置 Nacos 动态刷新）
 - [x] P7 Sentinel 限流（网关按 route 限流：order 2 QPS / product 5 QPS，超限返回 429）
+- [x] P7+ Sentinel 限流规则外置 Nacos 数据源（`gateway-flow.json` 动态热更新，改 QPS 不重启网关，秒级生效）
 - [x] 订单服务 service-order（下单：Feign 查商品 → 扣库存 → 落订单，失败补偿回补库存）
-- [ ] P8 链路追踪 + Seata 事务（后期）
+- [x] P8 Seata 分布式事务（`@GlobalTransactional` 自动回滚，替换手写补偿）
+- [ ] P9 链路追踪（后期）
 
 ## 🏗️ 项目结构
 
