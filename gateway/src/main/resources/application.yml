@@ -47,6 +47,10 @@ spring:
 # tracing 属启动必需的基础设施观测配置，放本地（不放 Nacos），服务一启动就能上报。
 # ZIPKIN_ADDR 可覆盖：将来想统一迁到 Windows 服务器，改 -DZIPKIN_ADDR=10.110.0.170:9411 即可。
 management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus,health,info   # 暴露 prometheus 端点（默认只暴露 health，必须显式加）
   tracing:
     sampling:
       probability: 1.0              # 学习项目请求量小，全采样保证每次请求都能看到

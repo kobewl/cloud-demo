@@ -1,0 +1,30 @@
+# =====================================================================
+# Prometheus 配置文件（P10 指标监控）
+#
+# 使用说明：
+#   · 本文件是 Prometheus 的"源文件"（配置即代码）。
+#   · 部署到 Windows 服务器（10.110.0.170）后，用 docker 挂载启动：
+#     docker run -d --name prometheus -p 9090:9090 \
+#       -v C:\prometheus\prometheus.yml:/etc/prometheus/prometheus.yml \
+#       prom/prometheus
+#   · 关键理解：Prometheus 是"拉取模型"——它每隔 scrape_interval 主动去
+#     各服务的 /actuator/prometheus 端点抓指标，服务不用知道自己被谁监控。
+# =====================================================================
+
+global:
+  scrape_interval: 5s        # 全局抓取间隔：每 5 秒去各服务抓一次指标
+  evaluation_interval: 5s    # 告警规则评估间隔
+
+scrape_configs:
+  # 抓取云 demo 的四个微服务
+  - job_name: 'cloud-demo'
+    metrics_path: '/actuator/prometheus'   # 指标暴露路径（Spring Boot actuator 默认）
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+          # 注意：这里是 Mac 本机 IP（10.110.0.99），因为四个服务跑在 Mac 上，
+          # 而 Prometheus 跑在 Windows 服务器上，要跨机器抓取。
+          - '10.110.0.99:8080'   # gateway 网关
+          - '10.110.0.99:8081'   # service-product 商品服务
+          - '10.110.0.99:8082'   # service-stock 库存服务
+          - '10.110.0.99:8083'   # service-order 订单服务

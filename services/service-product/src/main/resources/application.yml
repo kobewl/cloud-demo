@@ -49,6 +49,10 @@ seata:
 # ============ P9 链路追踪：全采样 + Zipkin 上报地址 ============
 # tracing 属启动必需的基础设施观测配置，放本地（不放 Nacos），服务一启动就能上报。
 management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus,health,info   # 暴露 prometheus 端点（默认只暴露 health，必须显式加）
   tracing:
     sampling:
       probability: 1.0              # 学习项目请求量小，全采样保证每次请求都能看到
