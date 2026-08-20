@@ -1,0 +1,63 @@
+/**
+ * 全局样式：定义设计系统的配色变量和基础样式。
+ * 覆盖 Element Plus 的主色，让按钮/链接/选中态统一成品牌靛蓝色。
+ */
+
+:root {
+  /* 品牌主色（靛蓝）及其衍生色阶，覆盖 Element Plus 默认蓝 */
+  --el-color-primary: #4f6ef7;
+  --el-color-primary-light-3: #7a93f9;
+  --el-color-primary-light-5: #a5b6fb;
+  --el-color-primary-light-7: #cbd5fd;
+  --el-color-primary-light-8: #dde4fe;
+  --el-color-primary-light-9: #eef1ff;
+  --el-color-primary-dark-2: #3d58d6;
+
+  /* 页面底色：带一点点冷调，让白色卡片更有层次 */
+  --page-bg: #f4f6fb;
+
+  /* 侧边栏深色渐变 */
+  --aside-bg-start: #1e1b3a;
+  --aside-bg-end: #0f172a;
+
+  /* 圆角与阴影 */
+  --radius-lg: 14px;
+  --radius-md: 10px;
+  --shadow-card: 0 2px 12px rgba(30, 27, 58, 0.06);
+  --shadow-hover: 0 6px 20px rgba(30, 27, 58, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', Arial, sans-serif;
+  color: #1f2937;
+  background: var(--page-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 让滚动条更精致 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #d3d8e4;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #b8bfd0;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
