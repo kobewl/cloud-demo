@@ -25,6 +25,7 @@
 - [x] P8 Seata 分布式事务（`@GlobalTransactional` 自动回滚，替换手写补偿）
 - [x] 前端控制台 frontend（Vue 3 + Element Plus：商品管理、配库存、下单、订单列表）
 - [x] P9 链路追踪（Micrometer Tracing + Zipkin，看网关→订单→商品→库存完整调用链）
+- [x] P10 指标监控（Prometheus + Grafana，看 CPU/内存/QPS/接口耗时大盘）
 
 ## 🏗️ 项目结构
 
@@ -58,9 +59,12 @@ cloud-demo/                          # 父工程：统一依赖版本，不写�
 | Nacos 服务端 | 8848 | - | 程序注册/配置 |
 | MySQL | 3306 | root/123456 | product_db / stock_db |
 | Zipkin | 9411 | - | 链路追踪 UI（P9） |
+| Prometheus | 9090 | - | 指标采集（P10，拉取各服务 /actuator/prometheus） |
+| Grafana | 3000 | admin/admin | 指标大盘（P10，配 Prometheus 数据源 + 导入 19004） |
 
 > Nacos 启动命令：`docker start nacos`（数据已持久化到数据卷）
 > Zipkin 启动命令：`docker start zipkin`（P9 链路追踪）
+> Prometheus 配置：`docs/prometheus/prometheus.yml`（挂载启动，targets 指向服务所在机器）
 
 ## 📖 使用指南
 
