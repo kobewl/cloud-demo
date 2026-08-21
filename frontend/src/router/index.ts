@@ -1,44 +1,56 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 /**
- * 路由表：每个页面一条记录，path 对应侧边栏菜单。
- * 组件用动态 import（懒加载）：首次进入页面才加载对应代码，加快首屏速度。
+ * 路由表：配置各个页面与元信息
  */
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/', redirect: '/products' },
+    { path: '/', redirect: '/dashboard' },
+    {
+      path: '/dashboard',
+      name: 'Dashboard',
+      component: () => import('@/views/Dashboard.vue'),
+      meta: { title: '仪表盘概览' },
+    },
     {
       path: '/products',
       name: 'ProductList',
       component: () => import('@/views/ProductList.vue'),
-      meta: { title: '商品列表' },
+      meta: { title: '商品资产管理' },
     },
     {
       path: '/products/:id',
       name: 'ProductDetail',
       component: () => import('@/views/ProductDetail.vue'),
-      meta: { title: '商品详情' },
+      meta: { title: '商品全景工作台' },
     },
     {
       path: '/order',
       name: 'PlaceOrder',
       component: () => import('@/views/PlaceOrder.vue'),
-      meta: { title: '下单' },
+      meta: { title: '极速下单工作台' },
     },
     {
       path: '/stock',
       name: 'StockManage',
       component: () => import('@/views/StockManage.vue'),
-      meta: { title: '配库存' },
+      meta: { title: '智能库存管控' },
     },
     {
       path: '/orders',
       name: 'OrderList',
       component: () => import('@/views/OrderList.vue'),
-      meta: { title: '订单列表' },
+      meta: { title: '订单与事务中心' },
+    },
+    {
+      path: '/governance',
+      name: 'ServiceGovernance',
+      component: () => import('@/views/ServiceGovernance.vue'),
+      meta: { title: '微服务治理与拓扑' },
     },
   ],
 })
 
 export default router
+
