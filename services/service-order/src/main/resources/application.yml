@@ -49,9 +49,21 @@ management:
     web:
       exposure:
         include: prometheus,health,info   # 暴露 prometheus 端点（默认只暴露 health，必须显式加）
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true        # 为 HTTP 请求指标生成直方图（_bucket），算 P99 的前提
   tracing:
     sampling:
       probability: 1.0              # 学习项目请求量小，全采样保证每次请求都能看到
   zipkin:
     tracing:
       endpoint: http://${ZIPKIN_ADDR:10.110.0.170:9411}/api/v2/spans
+
+# ============ P11 集中式日志（EFK）：日志落文件，供 Filebeat 采集 ============
+# Spring Boot 默认只把日志打到控制台，这里额外写一份到文件，
+# Filebeat 盯着这个文件，读到的内容推送到 Elasticsearch。
+# 与 tracing/metrics 同理，属启动必需的基础设施观测配置，放本地（不放 Nacos）。
+logging:
+  file:
+    name: /tmp/logs/service-order.log   # 订单服务日志文件（Filebeat 采集入口）

@@ -1,0 +1,65 @@
+# =====================================================================
+# Filebeat 配置（P11 集中式日志 EFK 的"采集器"）
+# 版本：7.17.28（必须与 Elasticsearch 版本严格一致）
+# 作用：盯着四个服务的日志文件，读一条就推一条给 Elasticsearch
+# =====================================================================
+
+# ---------- 1. 输入：采集哪些日志文件 ----------
+filebeat.inputs:
+  # 一条配置 = 采集一个服务的日志文件，四个服务四条，各自贴上"服务名"标签
+  - type: log
+    enabled: true
+    paths:
+      - /tmp/logs/gateway.log
+    # fields 是"自定义标签"：贴在每条日志上，进 ES 后就能按它过滤
+    fields:
+      service: gateway
+    # 把自定义标签提升为 ES 的顶层字段（否则会挤在一个 fields 对象里，不好过滤）
+    fields_under_root: true
+
+  - type: log
+    enabled: true
+    paths:
+      - /tmp/logs/service-product.log
+    fields:
+      service: service-product
+    fields_under_root: true
+
+  - type: log
+    enabled: true
+    paths:
+      - /tmp/logs/service-stock.log
+    fields:
+      service: service-stock
+    fields_under_root: true
+
+  - type: log
+    enabled: true
+    paths:
+      - /tmp/logs/service-order.log
+    fields:
+      service: service-order
+    fields_under_root: true
+
+# ---------- 2. 多行合并：把 Java 异常堆栈拼成"一条"日志 ----------
+# Java 异常长这样：
+#   2026-08-21T14:00:00.123 ERROR 1 --- [main] ... BusinessException: 商品不存在
+#       at com.wangliang.cloud.product...  （这行是堆栈，属于上面那条日志）
+# 如果按行采集，上面这行会被单独当成一条日志，异常就"碎"了。
+# 规则：以日期时间开头的行 = 新日志的开始；其余行 = 上一条的延续。
+multiline.pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+multiline.negate: true          # 匹配到日期开头 = 新日志（不是延续行）
+multiline.match: after          # 把不匹配的行"拼到"上一条的后面
+multiline.max_lines: 500        # 单条日志最多 500 行，防异常堆栈过长撑爆
+
+# ---------- 3. 输出：推送到 Elasticsearch ----------
+output.elasticsearch:
+  hosts: ["10.110.0.170:9200"]   # ES 地址（Windows 服务器）
+  # 因为 ES 装的时候关了安全认证（xpack.security.enabled=false），所以不需要账号密码
+  # 索引名按天滚动：filebeat-7.17.28-2026.08.21 这样的格式，每天一个索引
+  index: "filebeat-7.17.28-%{+yyyy.MM.dd}"
+
+# ---------- 4. 其他设置 ----------
+setup.template.enabled: false    # 不让 Filebeat 自动装索引模板（学习用，简化，让 ES 自动推断字段类型）
+logging.level: info              # Filebeat 自身的日志级别
+logging.to_files: false          # Filebeat 自身日志打到容器标准输出，方便 docker logs 看

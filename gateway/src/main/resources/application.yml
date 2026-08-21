@@ -57,3 +57,11 @@ management:
   zipkin:
     tracing:
       endpoint: http://${ZIPKIN_ADDR:10.110.0.170:9411}/api/v2/spans
+
+# ============ P11 集中式日志（EFK）：日志落文件，供 Filebeat 采集 ============
+# Spring Boot 默认只把日志打到控制台，这里额外写一份到文件，
+# Filebeat 盯着这个文件，读到的内容推送到 Elasticsearch。
+# 与 tracing/metrics 同理，属启动必需的基础设施观测配置，放本地（不放 Nacos）。
+logging:
+  file:
+    name: /tmp/logs/gateway.log   # 网关日志文件（Filebeat 采集入口）
