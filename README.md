@@ -26,6 +26,7 @@
 - [x] 前端控制台 frontend（Vue 3 + Element Plus：商品管理、配库存、下单、订单列表）
 - [x] P9 链路追踪（Micrometer Tracing + Zipkin，看网关→订单→商品→库存完整调用链）
 - [x] P10 指标监控（Prometheus + Grafana，看 CPU/内存/QPS/接口耗时大盘）
+- [x] P11 集中式日志（EFK：四服务日志落文件 + Filebeat 采集进 ES + Kibana 查询）
 
 ## 🏗️ 项目结构
 
@@ -61,10 +62,14 @@ cloud-demo/                          # 父工程：统一依赖版本，不写�
 | Zipkin | 9411 | - | 链路追踪 UI（P9） |
 | Prometheus | 9090 | - | 指标采集（P10，拉取各服务 /actuator/prometheus） |
 | Grafana | 3000 | admin/admin | 指标大盘（P10，配 Prometheus 数据源 + 导入 19004） |
+| Elasticsearch | 9200 | - | 日志存储（P11，7.17.28，三件套版本严格对齐） |
+| Kibana | 5601 | - | 日志查询界面（P11，索引模式 filebeat-*） |
 
 > Nacos 启动命令：`docker start nacos`（数据已持久化到数据卷）
 > Zipkin 启动命令：`docker start zipkin`（P9 链路追踪）
 > Prometheus 配置：`docs/prometheus/prometheus.yml`（挂载启动，targets 指向服务所在机器）
+> Filebeat 日志采集（P11）：Docker 跑在服务所在机器，挂载 `/tmp/logs` 采集四服务日志文件，
+> 推送到 ES；配置源文件 `docs/filebeat/filebeat.yml`
 
 ## 📖 使用指南
 
