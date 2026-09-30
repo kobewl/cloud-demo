@@ -61,8 +61,13 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
         //   传给下游（WebFlux 里要 mutate 重建请求）
         //   注意：mutate() 返回的是"builder"，必须接收返回值并 build()，
         //   否则那行代码等于什么都没发生（写完的请求头根本没塞进去）
+
+        // 🔴 RBAC 第 2 步：照 X-User-Id 的样子，把角色也塞进请求头
+        //   "X-User-Roles"，取值用 claims.get("roles", String.class) ——
+        //   就在下面 newRequest 的 mutate 链里加一行 .header(...)
         ServerHttpRequest newRequest = exchange.getRequest().mutate()
                 .header("X-User-Id", claims.getSubject())
+                .header("X-User-Roles", claims.get("roles", String.class))
                 .build();
         return chain.filter(exchange.mutate().request(newRequest).build());
     }

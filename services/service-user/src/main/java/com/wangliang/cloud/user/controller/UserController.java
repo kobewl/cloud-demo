@@ -32,6 +32,8 @@ public class UserController {
         if (!username.equals("admin") || !password.equals("123456")) {
             return R.fail(ResultCode.INVALID_CREDENTIALS);
         }
-        return R.ok(Map.of("token", JwtUtil.generateToken(1L, username)));
+        // 🔴 RBAC 第 1 步（与 JwtUtil.generateToken 同步改）：调用处加第三个实参 "ADMIN"
+        //   （真实项目里 roles 查自数据库用户表；学习项目 admin 账号先写死）
+        return R.ok(Map.of("token", JwtUtil.generateToken(1L, username, "ADMIN")));
     }
 }

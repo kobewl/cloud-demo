@@ -32,11 +32,16 @@ public class JwtUtil {
      *   - .expiration(new Date(System.currentTimeMillis() + EXPIRE_MS)) 设过期时间；
      *   - .signWith(KEY) 指定签名密钥；
      *   - 最后 .compact() 得到 token 字符串返回。
+     *
+     * 🔴 RBAC 第 1 步：给本方法加第三个参数 String roles，
+     *   并在链式调用里加 .claim("roles", roles) —— 角色必须进 token，网关才解析得到。
+     *   ⚠️ 改了签名，UserController 的调用处要同步加实参（见该文件 TODO）。
      */
-    public static String generateToken(Long userId, String username) {
+    public static String generateToken(Long userId, String username, String roles) {
         return Jwts.builder()
                 .subject(userId.toString())
                 .claim("username", username)
+                .claim("roles", roles)
                 .expiration(new Date(System.currentTimeMillis() + EXPIRE_MS))
                 .signWith(KEY)
                 .compact();
