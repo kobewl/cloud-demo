@@ -19,6 +19,16 @@ spring:
     init:
       mode: always                       # 启动时自动执行 schema.sql
       schema-locations: classpath:db/schema.sql
+  # ============ P12 Redis 基础配置 ============
+  # Redis 是缓存，不是商品最终数据源；商品详情 Cache Aside 读写逻辑暂由学习者实现。
+  # 连接参数放配置中心，便于切换环境；密码为空时不要额外配置 password。
+  data:
+    redis:
+      host: ${REDIS_HOST:10.110.0.170}
+      port: ${REDIS_PORT:6379}
+      database: ${REDIS_DATABASE:0}
+      connect-timeout: 2s
+      timeout: 2s
 
 mybatis-plus:
   configuration:
@@ -26,6 +36,13 @@ mybatis-plus:
   global-config:
     db-config:
       id-type: assign_id                 # 主键用雪花算法（分布式环境不重复）
+
+# 商品缓存基础参数：代码通过 @ConfigurationProperties 绑定，TTL 暂不在业务代码中硬编码。
+cache:
+  product:
+    enabled: true
+    key-prefix: cloud-demo:product
+    detail-ttl: 10m
 
 # 自定义业务配置：演示 Nacos 动态刷新。
 # 在控制台把下面这段的值改掉并发布，商品服务的 GET /api/config/notice 不重启就能读到新值。

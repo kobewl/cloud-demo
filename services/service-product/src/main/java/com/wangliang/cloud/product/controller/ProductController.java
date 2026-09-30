@@ -3,11 +3,16 @@ package com.wangliang.cloud.product.controller;
 import com.wangliang.cloud.common.core.api.R;
 import com.wangliang.cloud.common.core.api.ResultCode;
 import com.wangliang.cloud.common.core.exception.BusinessException;
+import com.wangliang.cloud.product.cache.ProductCacheKeys;
+import com.wangliang.cloud.product.config.ProductCacheProperties;
+import com.wangliang.cloud.product.dto.ProductDetailCacheDTO;
 import com.wangliang.cloud.product.dto.StockInfoDTO;
 import com.wangliang.cloud.product.entity.Product;
 import com.wangliang.cloud.product.feign.StockFeignClient;
 import com.wangliang.cloud.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -18,6 +23,7 @@ import java.util.Map;
 /**
  * 商品接口：所有返回都是统一格式 R
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/product")
 @RequiredArgsConstructor
@@ -25,16 +31,27 @@ public class ProductController {
 
     private final ProductService productService;
 
-    /** Feign 客户端：注入后就能远程调用库存服务（Spring 自动生成实现类） */
+    /**
+     * Feign 客户端：注入后就能远程调用库存服务（Spring 自动生成实现类）
+     */
     private final StockFeignClient stockFeignClient;
 
-    /** 查询商品列表 */
+    // --------- Redis 相关 -----------
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final ProductCacheKeys productCacheKeys;
+    private final ProductCacheProperties productCacheProperties;
+
+    /**
+     * 查询商品列表
+     */
     @GetMapping("/list")
     public R<List<Product>> list() {
         return R.ok(productService.list());
     }
 
-    /** 按 ID 查询商品 */
+    /**
+     * 按 ID 查询商品
+     */
     @GetMapping("/{id}")
     public R<Product> getById(@PathVariable Long id) {
         Product product = productService.getById(id);
@@ -44,7 +61,9 @@ public class ProductController {
         return R.ok(product);
     }
 
-    /** 新增商品 */
+    /**
+     * 新增商品
+     */
     @PostMapping
     public R<Void> save(@RequestBody Product product) {
         product.setCreatedAt(LocalDateTime.now());
@@ -52,11 +71,21 @@ public class ProductController {
         return R.ok();
     }
 
-    /** 删除商品 */
+    /**
+     * 删除商品
+     */
     @DeleteMapping("/{id}")
     public R<Void> delete(@PathVariable Long id) {
         productService.removeById(id);
-        return R.ok();
+
+        if (productCacheProperties.isEnabled()) {
+            try {
+                redisTemplate.delete(productCacheKeys.detail(id));
+            } catch (RuntimeException e){
+                log.warn("删除商品详情缓存失败，cacheKey={}",
+                        productCacheKeys.detail(id), e);
+            }
+        } return R.ok();
     }
 
     /**
@@ -65,15 +94,47 @@ public class ProductController {
      */
     @GetMapping("/{id}/detail")
     public R<Map<String, Object>> detailWithStock(@PathVariable Long id) {
+        String cacheKey = productCacheKeys.detail(id);
+
+        if (productCacheProperties.isEnabled()) {
+            Object cached = null;
+
+            try {
+                cached = redisTemplate.opsForValue().get(cacheKey);
+            } catch (Exception e) {
+                log.warn("读取商品详情缓存失败，cacheKey={}", cacheKey, e);
+            }
+
+            // Redis 命中
+            if (cached instanceof ProductDetailCacheDTO cacheDTO) {
+                // 取出 ProductDetailCacheDTO 转成当前接口需要的 Map
+                Map<String, Object> result = new HashMap<>();
+                result.put("product", cacheDTO.getProduct());
+                result.put("stock", cacheDTO.getStock());
+                return R.ok(result);
+            }
+        }
+
         Product product = productService.getById(id);
         if (product == null) {
             throw new BusinessException(ResultCode.PRODUCT_NOT_FOUND);
         }
         // Feign 远程调用库存服务（看起来像本地方法，实际发起了 HTTP 请求）
         R<StockInfoDTO> stockR = stockFeignClient.getStock(id);
+
         // 若库存服务返回失败，把原始错误透传给前端（不吞错误）
         if (stockR.getCode() != 0) {
             return R.fail(stockR.getCode(), stockR.getMsg());
+        }
+
+        ProductDetailCacheDTO cacheDTO = new ProductDetailCacheDTO(product, stockR.getData());
+
+        if (productCacheProperties.isEnabled()) {
+            try {
+                redisTemplate.opsForValue().set(cacheKey, cacheDTO, productCacheProperties.getDetailTtl());
+            } catch (Exception e) {
+                log.warn("Redis 写入失败", e);
+            }
         }
         Map<String, Object> result = new HashMap<>();
         result.put("product", product);
@@ -94,6 +155,14 @@ public class ProductController {
         R<Void> stockR = stockFeignClient.deductStock(id, 1);
         if (stockR.getCode() != 0) {
             return R.fail(stockR.getCode(), stockR.getMsg());
+        }
+
+        if (productCacheProperties.isEnabled()) {
+            try {
+                redisTemplate.delete(productCacheKeys.detail(id));
+            } catch (RuntimeException e) {
+                log.warn("删除商品详情缓存失败，cacheKey={}", productCacheKeys.detail(id), e);
+            }
         }
         return R.ok();
     }

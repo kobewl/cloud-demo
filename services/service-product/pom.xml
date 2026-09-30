@@ -53,6 +53,11 @@
             <artifactId>mysql-connector-j</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <!-- P12 Redis：商品详情缓存基础设施，版本由 Spring Boot BOM 管理 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
         <!-- Lombok：实体类/Controller 都用得到（Maven 依赖不传递，各模块自备） -->
         <dependency>
             <groupId>org.projectlombok</groupId>
