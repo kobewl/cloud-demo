@@ -1,0 +1,62 @@
+server:
+  port: 8084                     # 用户服务端口（8080~8083 已被网关/商品/库存/订单占用）
+
+spring:
+  application:
+    name: service-user           # 服务名：Nacos 注册中心 + 配置中心的"身份证"
+  cloud:
+    nacos:
+      discovery:
+        # NACOS_ADDR 覆盖：跨机器部署时传 -DNACOS_ADDR=<Nacos所在机器IP>:8848
+        server-addr: ${NACOS_ADDR:10.110.0.170:8848}
+        ip: ${NACOS_IP:}
+        username: nacos
+        password: nacos
+        group: cloud-demo
+      config:
+        server-addr: ${NACOS_ADDR:10.110.0.170:8848}
+        username: nacos
+        password: nacos
+        group: cloud-demo
+  config:
+    # 配置中心入口（与其它服务一致）：optional = Nacos 里没有这份配置也能启动
+    import:
+      - optional:nacos:service-user.yaml?refreshEnabled=true
+
+# ============ Seata 客户端配置 ============
+# P15 简化：用户服务暂不参与分布式事务，但 services 父 pom 给所有子模块
+# 强制继承了 seata 客户端依赖，保留这段防止启动时找不到事务分组报错。
+seata:
+  application-id: ${spring.application.name}
+  tx-service-group: my_tx_group
+  service:
+    vgroup-mapping:
+      my_tx_group: default
+  registry:
+    type: nacos
+    nacos:
+      server-addr: ${NACOS_ADDR:10.110.0.170:8848}
+      username: nacos
+      password: nacos
+      group: cloud-demo
+      cluster: default
+  config:
+    type: file
+
+# ============ P9 链路追踪：全采样 + Zipkin 上报地址（与其它服务保持一致） ============
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus,health,info
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://${ZIPKIN_ADDR:10.110.0.170:9411}/api/v2/spans
+
+# ============ P11 集中式日志：落文件供 Filebeat 采集 ============
+logging:
+  file:
+    name: /tmp/logs/service-user.log

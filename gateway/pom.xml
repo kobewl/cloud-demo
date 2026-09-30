@@ -72,6 +72,25 @@
             <groupId>io.zipkin.reporter2</groupId>
             <artifactId>zipkin-reporter-brave</artifactId>
         </dependency>
+        <!-- P15 网关验签：jjwt 解析 token —— 密钥必须与用户服务 JwtUtil 完全一致
+             （api 编译期 / impl 与 jackson 运行期，与 service-user 同版本 0.12.6） -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>0.12.6</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>0.12.6</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>0.12.6</version>
+            <scope>runtime</scope>
+        </dependency>
         <!-- P10 指标监控：Micrometer 的 Prometheus 实现，把指标暴露成 Prometheus 拉取格式 -->
         <dependency>
             <groupId>io.micrometer</groupId>

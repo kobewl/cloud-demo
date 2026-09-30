@@ -32,7 +32,10 @@ public enum ResultCode {
 
     // 订单服务错误（703xx）
     ORDER_CREATE_FAIL(70300, "订单创建失败"),
-    ORDER_NOT_FOUND(70301, "订单不存在");
+    ORDER_NOT_FOUND(70301, "订单不存在"),
+
+    // 用户服务错误（704xx，P15 JWT）
+    INVALID_CREDENTIALS(70400, "用户名或密码错误");
 
 
     // 错误码
