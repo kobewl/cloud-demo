@@ -3,6 +3,7 @@ package com.wangliang.cloud.user.controller;
 import com.wangliang.cloud.common.core.api.R;
 import com.wangliang.cloud.common.core.api.ResultCode;
 import com.wangliang.cloud.user.util.JwtUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,7 +17,10 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/user")
+@RequiredArgsConstructor
 public class UserController {
+
+    private final JwtUtil jwtUtil;
 
     /**
      * 登录接口：校验账号密码，通过则签发 JWT。
@@ -34,6 +38,6 @@ public class UserController {
         }
         // 🔴 RBAC 第 1 步（与 JwtUtil.generateToken 同步改）：调用处加第三个实参 "ADMIN"
         //   （真实项目里 roles 查自数据库用户表；学习项目 admin 账号先写死）
-        return R.ok(Map.of("token", JwtUtil.generateToken(1L, username, "ADMIN")));
+        return R.ok(Map.of("token", jwtUtil.generateToken(1L, username, "ADMIN")));
     }
 }

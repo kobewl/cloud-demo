@@ -2,6 +2,7 @@
 -- 表名用 orders（order 是 MySQL 保留字，直接用会报语法错误）
 CREATE TABLE IF NOT EXISTS orders (
     id           BIGINT PRIMARY KEY COMMENT '订单ID（雪花算法生成）',
+    request_id   VARCHAR(64) NULL COMMENT '幂等键：前端每次"下单意图"生成一个，同一个键只会落一单',
     product_id   BIGINT NOT NULL COMMENT '商品ID',
     product_name VARCHAR(100) NOT NULL COMMENT '商品名称（下单时快照，商品改名不影响历史订单）',
     price        DECIMAL(10,2) NOT NULL COMMENT '成交单价',
@@ -10,8 +11,12 @@ CREATE TABLE IF NOT EXISTS orders (
     status       TINYINT NOT NULL DEFAULT 0 COMMENT '状态：0-已创建 1-已支付 2-已取消',
     deleted      TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-未删除 1-已删除',
     created_at   DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at   DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间（修改时自动刷新）'
+    updated_at   DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间（修改时自动刷新）',
+    -- 幂等的最后一道防线：并发重复请求都绕过了"先查"，也只有一条能插入成功
+    UNIQUE KEY uk_request_id (request_id)
 ) COMMENT = '订单表';
+-- ⚠ 老库升级：CREATE TABLE IF NOT EXISTS 不会给已存在的表加列，
+--   已有 orders 表的环境需手动执行 docs/sql/2026-11-23-orders-add-request-id.sql
 
 -- Seata AT 模式回滚账本（P8）：记录每个分支事务"改之前长什么样"，TC 靠它逆向补偿
 -- 官方标准建表 SQL，三个参与事务的库都要建

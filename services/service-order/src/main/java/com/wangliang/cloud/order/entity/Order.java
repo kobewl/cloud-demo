@@ -21,6 +21,9 @@ public class Order {
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
+    /** 幂等键：同一个下单意图只落一单（库里有唯一索引 uk_request_id 兜底） */
+    private String requestId;
+
     /** 商品ID */
     private Long productId;
 

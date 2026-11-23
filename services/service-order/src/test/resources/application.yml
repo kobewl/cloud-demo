@@ -1,0 +1,24 @@
+# 单测专用配置：覆盖 main 的 application.yml，不连 Nacos / Seata / MySQL / Zipkin
+spring:
+  application:
+    name: service-order-test
+  cloud:
+    nacos:
+      discovery:
+        enabled: false
+      config:
+        enabled: false
+        import-check:
+          enabled: false
+    openfeign:
+      client:
+        refresh-enabled: true
+        config:
+          service-stock:
+            connect-timeout: 500
+            read-timeout: 500
+seata:
+  enabled: false
+feign:
+  sentinel:
+    enabled: true

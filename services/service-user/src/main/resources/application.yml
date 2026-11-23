@@ -60,3 +60,11 @@ management:
 logging:
   file:
     name: /tmp/logs/service-user.log
+
+# ============ JWT 签发配置（P15）============
+# secret：通过环境变量 JWT_SECRET 注入，或在 Nacos service-user.yaml 里配 jwt.secret（不进 git）。
+#         必须与网关一致，≥ 32 字节；没配置时启动失败。
+# expire：token 有效期（Duration 格式，如 2h、30m）
+jwt:
+  secret: ${JWT_SECRET:}
+  expire: 2h

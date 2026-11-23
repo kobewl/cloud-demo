@@ -30,6 +30,14 @@ spring:
       connect-timeout: 2s
       timeout: 2s
 
+  # ---- Feign 超时（商品详情查库存；默认 connect 10s / read 60s 太长）----
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connect-timeout: 1000  # ms
+            read-timeout: 2000     # ms
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true   # 数据库下划线字段自动映射为驼峰属性

@@ -19,6 +19,22 @@ spring:
         username: nacos
         password: nacos
         group: cloud-demo
+    # ---- 熔断降级：OpenFeign 超时（数值在 Nacos，见 docs/nacos-config/service-order.yaml）----
+    openfeign:
+      client:
+        refresh-enabled: true            # 超时参数随 Nacos 发布热更新（否则只在启动时读一次）
+    # ---- 熔断降级：Sentinel 熔断规则从 Nacos 拉（源文件 docs/nacos-config/service-order-degrade.json）----
+    sentinel:
+      datasource:
+        degrade:
+          nacos:
+            server-addr: ${NACOS_ADDR:10.110.0.170:8848}
+            username: nacos
+            password: nacos
+            data-id: service-order-degrade.json
+            group-id: cloud-demo
+            data-type: json
+            rule-type: degrade             # 熔断（降级）规则 DegradeRule
   config:
     # 配置中心入口（P5 约定：业务/环境配置外置到 Nacos，本地只留启动必需项）
     import:
@@ -67,3 +83,11 @@ management:
 logging:
   file:
     name: /tmp/logs/service-order.log   # 订单服务日志文件（Filebeat 采集入口）
+
+# ============ 熔断降级：让 Sentinel 包装 Feign 调用 ============
+# 开启后每个 Feign 方法都是一个 Sentinel 资源，名字形如
+#   POST:http://service-stock/api/stock/deduct/{productId}/{count}
+# 调用异常或熔断打开时走 @FeignClient(fallbackFactory = ...)
+feign:
+  sentinel:
+    enabled: true

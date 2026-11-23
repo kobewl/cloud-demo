@@ -59,6 +59,8 @@ export interface Order {
 
 /** 下单请求参数（对应 OrderCreateDTO） */
 export interface OrderCreateDTO {
+  /** 幂等键：同一个下单意图只落一单（见 api/order.ts 的 newRequestId） */
+  requestId: string
   productId: string
   count: number
 }

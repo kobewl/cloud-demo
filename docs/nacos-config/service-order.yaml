@@ -21,6 +21,19 @@ spring:
       mode: always                       # 启动时自动执行 schema.sql
       schema-locations: classpath:db/schema.sql
 
+  # ---- Feign 超时（熔断降级的前提：没有超时，慢调用会一直占着线程）----
+  # 默认是 connect 10s / read 60s：下游一慢，订单服务的 Tomcat 线程全卡在等待上 → 雪崩。
+  # 本地 application.yml 开了 spring.cloud.openfeign.client.refresh-enabled，这里改完发布即生效。
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:                 # 所有 Feign 客户端的默认值
+            connect-timeout: 1000  # 建连超时（ms）
+            read-timeout: 2000     # 读超时（ms）：大于下游正常 P99，小于前端/网关的超时
+          service-stock:           # 按服务名覆盖 default（扣库存单独调）
+            connect-timeout: 1000
+            read-timeout: 2000
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true   # 数据库下划线字段自动映射为驼峰属性

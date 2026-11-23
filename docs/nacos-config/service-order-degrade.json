@@ -1,0 +1,27 @@
+[
+  {
+    "resource": "POST:http://service-stock/api/stock/deduct/{productId}/{count}",
+    "grade": 1,
+    "count": 0.5,
+    "minRequestAmount": 5,
+    "statIntervalMs": 10000,
+    "timeWindow": 10
+  },
+  {
+    "resource": "POST:http://service-stock/api/stock/deduct/{productId}/{count}",
+    "grade": 0,
+    "count": 1000,
+    "slowRatioThreshold": 0.5,
+    "minRequestAmount": 5,
+    "statIntervalMs": 10000,
+    "timeWindow": 10
+  },
+  {
+    "resource": "GET:http://service-product/api/product/{id}",
+    "grade": 1,
+    "count": 0.5,
+    "minRequestAmount": 5,
+    "statIntervalMs": 10000,
+    "timeWindow": 10
+  }
+]

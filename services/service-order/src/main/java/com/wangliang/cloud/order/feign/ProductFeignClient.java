@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
  * name 必须是商品服务在 Nacos 里注册的服务名，
  * 调用时 Feign 会去 Nacos 找到 service-product 的真实地址，帮你发 HTTP 请求。
  */
-@FeignClient(name = "service-product")
+@FeignClient(name = "service-product", fallbackFactory = ProductFeignFallbackFactory.class)
 public interface ProductFeignClient {
 
     /**

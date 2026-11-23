@@ -14,7 +14,7 @@ import {
   DocumentCopy,
 } from '@element-plus/icons-vue'
 import { listProducts, getProductDetail } from '@/api/product'
-import { createOrder } from '@/api/order'
+import { createOrder, newRequestId } from '@/api/order'
 import SeataTraceDrawer from '@/components/SeataTraceDrawer.vue'
 import type { Product, ProductDetail, Order } from '@/types'
 
@@ -79,7 +79,8 @@ async function submit() {
   }
   submitting.value = true
   try {
-    const orderId = await createOrder({ productId: form.productId, count: form.count })
+    const orderId = await createOrder({ requestId, productId: form.productId, count: form.count })
+    requestId = newRequestId()
     fireConfetti()
     ElMessage.success(`下单成功！Seata 全局事务已完成，订单 ID: ${orderId}`)
 
@@ -102,6 +103,11 @@ async function submit() {
 }
 
 watch(() => form.productId, loadDetail)
+// 下单幂等键：商品或数量变了算新的下单意图，换键；下单成功后也换键
+let requestId = newRequestId()
+watch(() => [form.productId, form.count], () => {
+  requestId = newRequestId()
+})
 
 onMounted(loadProducts)
 </script>

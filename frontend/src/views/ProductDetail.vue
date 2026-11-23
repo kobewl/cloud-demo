@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import confetti from 'canvas-confetti'
@@ -15,7 +15,7 @@ import {
   DocumentCopy,
 } from '@element-plus/icons-vue'
 import { getProductDetail } from '@/api/product'
-import { createOrder } from '@/api/order'
+import { createOrder, newRequestId } from '@/api/order'
 import { addStock, createStock } from '@/api/stock'
 import SeataTraceDrawer from '@/components/SeataTraceDrawer.vue'
 import type { ProductDetail, Order } from '@/types'
@@ -35,6 +35,11 @@ const discountActive = ref(true)
 // 下单表单
 const orderForm = reactive({
   count: 1,
+})
+// 下单幂等键：数量变了算新的下单意图，换键；下单成功后也换键
+let requestId = newRequestId()
+watch(() => orderForm.count, () => {
+  requestId = newRequestId()
 })
 
 const productId = route.params.id as string
@@ -70,7 +75,8 @@ async function submitOrder() {
   if (!detail.value) return
   submitting.value = true
   try {
-    const orderId = await createOrder({ productId, count: orderForm.count })
+    const orderId = await createOrder({ requestId, productId, count: orderForm.count })
+    requestId = newRequestId()
     fireConfetti()
     ElMessage.success({
       message: `下单成功！Seata 全局事务已提交，订单号: ${orderId}`,

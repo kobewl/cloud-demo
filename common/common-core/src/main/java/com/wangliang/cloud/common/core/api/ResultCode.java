@@ -13,6 +13,8 @@ public enum ResultCode {
     // 系统/通用错误
     SYSTEM_ERROR(70000, "系统繁忙，请稍后重试"),
     PARAM_ERROR(70001, "参数错误"),
+    // 下游服务超时/宕机/熔断时由 Feign fallback 返回：调用方据此快速失败，不再傻等
+    SERVICE_UNAVAILABLE(70002, "依赖服务暂不可用，请稍后重试"),
 
     // 商品服务错误（701xx）
     PRODUCT_NOT_FOUND(70100, "商品不存在"),
