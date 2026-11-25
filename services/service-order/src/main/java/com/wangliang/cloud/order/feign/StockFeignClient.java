@@ -25,4 +25,18 @@ public interface StockFeignClient {
 
     @PostMapping("/api/stock/add/{productId}/{count}")
     R<Void> addStock(@PathVariable("productId") Long productId, @PathVariable("count") Integer count);
+
+    /** 预占库存：对应库存服务的 POST /api/stock/hold/{orderId}/{productId}/{count}。 */
+    @PostMapping("/api/stock/hold/{orderId}/{productId}/{count}")
+    R<Void> holdStock(@PathVariable("orderId") Long orderId,
+                      @PathVariable("productId") Long productId,
+                      @PathVariable("count") Integer count);
+
+    /** 确认预占：对应库存服务的 POST /api/stock/hold/{orderId}/confirm。 */
+    @PostMapping("/api/stock/hold/{orderId}/confirm")
+    R<Void> confirmHold(@PathVariable("orderId") Long orderId);
+
+    /** 释放预占：对应库存服务的 POST /api/stock/hold/{orderId}/release。 */
+    @PostMapping("/api/stock/hold/{orderId}/release")
+    R<Void> releaseHold(@PathVariable("orderId") Long orderId);
 }

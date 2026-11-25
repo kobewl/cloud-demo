@@ -16,4 +16,6 @@ public interface OrderService extends IService<Order> {
      * @return 订单ID
      */
     Long create(OrderCreateDTO dto);
+
+    void pay(Long orderId);
 }

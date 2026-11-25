@@ -52,4 +52,10 @@ public class OrderController {
         List<Order> orders = orderService.list();
         return R.ok(orders);
     }
+
+    @PostMapping("/{id}/pay")
+    public R<Void> pay(@PathVariable("id") Long id) {
+        orderService.pay(id);
+        return R.ok();
+    }
 }

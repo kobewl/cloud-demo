@@ -9,14 +9,17 @@ CREATE TABLE IF NOT EXISTS orders (
     count        INT NOT NULL COMMENT '购买数量',
     total_amount DECIMAL(10,2) NOT NULL COMMENT '总金额 = 单价 x 数量',
     status       TINYINT NOT NULL DEFAULT 0 COMMENT '状态：0-已创建 1-已支付 2-已取消',
+    expire_at    DATETIME NULL COMMENT '支付截止时间（下单时由后端写入，老单可为空）',
     deleted      TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除：0-未删除 1-已删除',
     created_at   DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at   DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间（修改时自动刷新）',
     -- 幂等的最后一道防线：并发重复请求都绕过了"先查"，也只有一条能插入成功
-    UNIQUE KEY uk_request_id (request_id)
+    UNIQUE KEY uk_request_id (request_id),
+    KEY idx_orders_timeout_scan (status, expire_at, id)
 ) COMMENT = '订单表';
--- ⚠ 老库升级：CREATE TABLE IF NOT EXISTS 不会给已存在的表加列，
---   已有 orders 表的环境需手动执行 docs/sql/2026-11-23-orders-add-request-id.sql
+-- ⚠ 老库升级：CREATE TABLE IF NOT EXISTS 不会给已存在的表加列或索引，
+--   已有 orders 表补 request_id：docs/sql/2026-11-23-orders-add-request-id.sql
+--   已有 orders 表补 expire_at 与扫描索引：docs/sql/2026-11-25-orders-add-expire-at.sql
 
 -- Seata AT 模式回滚账本（P8）：记录每个分支事务"改之前长什么样"，TC 靠它逆向补偿
 -- 官方标准建表 SQL，三个参与事务的库都要建

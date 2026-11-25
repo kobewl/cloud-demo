@@ -38,6 +38,25 @@ public class StockFeignFallbackFactory implements FallbackFactory<StockFeignClie
                 log.warn("库存服务回补降级，productId={}, count={}, 原因={}", productId, count, reason, cause);
                 return unavailable(reason);
             }
+
+            @Override
+            public R<Void> holdStock(Long orderId, Long productId, Integer count) {
+                log.warn("库存服务预占降级，orderId={}, productId={}, count={}, 原因={}",
+                        orderId, productId, count, reason, cause);
+                return unavailable(reason);
+            }
+
+            @Override
+            public R<Void> confirmHold(Long orderId) {
+                log.warn("库存服务确认预占降级，orderId={}, 原因={}", orderId, reason, cause);
+                return unavailable(reason);
+            }
+
+            @Override
+            public R<Void> releaseHold(Long orderId) {
+                log.warn("库存服务释放预占降级，orderId={}, 原因={}", orderId, reason, cause);
+                return unavailable(reason);
+            }
         };
     }
 

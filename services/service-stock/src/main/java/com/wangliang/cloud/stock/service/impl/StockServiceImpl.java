@@ -1,6 +1,8 @@
 package com.wangliang.cloud.stock.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wangliang.cloud.common.core.api.ResultCode;
+import com.wangliang.cloud.common.core.exception.BusinessException;
 import com.wangliang.cloud.stock.entity.Stock;
 import com.wangliang.cloud.stock.mapper.StockMapper;
 import com.wangliang.cloud.stock.service.StockService;
@@ -22,6 +24,9 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, Stock> implements
 
     @Override
     public boolean deduct(Long productId, Integer count) {
+        if (count == null || count <= 0) {
+            throw new BusinessException(ResultCode.PARAM_ERROR);
+        }
         // 原子扣减：交给 Mapper 里的手写 SQL（数据库行锁保证并发安全）
         return baseMapper.deductStock(productId, count) > 0;
     }

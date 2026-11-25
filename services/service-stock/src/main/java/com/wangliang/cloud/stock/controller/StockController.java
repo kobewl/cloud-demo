@@ -4,6 +4,7 @@ import com.wangliang.cloud.common.core.api.R;
 import com.wangliang.cloud.common.core.api.ResultCode;
 import com.wangliang.cloud.common.core.exception.BusinessException;
 import com.wangliang.cloud.stock.entity.Stock;
+import com.wangliang.cloud.stock.service.StockHoldService;
 import com.wangliang.cloud.stock.service.StockService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 public class StockController {
 
     private final StockService stockService;
+    private final StockHoldService stockHoldService;
 
     /** 新增/初始化库存（给商品配库存，测试用） */
     @PostMapping
@@ -58,6 +60,26 @@ public class StockController {
         if (!stockService.add(productId, count)) {
             throw new BusinessException(ResultCode.STOCK_NOT_FOUND);
         }
+        return R.ok();
+    }
+
+    @PostMapping("/hold/{orderId}/{productId}/{count}")
+    public R<Void> hold(@PathVariable Long orderId,
+                        @PathVariable Long productId,
+                        @PathVariable Integer count) {
+        stockHoldService.reserve(orderId, productId, count);
+        return R.ok();
+    }
+
+    @PostMapping("/hold/{orderId}/confirm")
+    public R<Void> confirm(@PathVariable("orderId") Long orderId) {
+        stockHoldService.confirm(orderId);
+        return R.ok();
+    }
+
+    @PostMapping("/hold/{orderId}/release")
+    public R<Void> release(@PathVariable("orderId") Long orderId) {
+        stockHoldService.release(orderId);
         return R.ok();
     }
 }

@@ -51,4 +51,7 @@ public class Order {
 
     /** 更新时间（数据库 ON UPDATE 自动刷新，Java 侧不用手动维护） */
     private LocalDateTime updatedAt;
+
+    /** 支付截止时间，由后端在下单时设置 */
+    private LocalDateTime expireAt;
 }

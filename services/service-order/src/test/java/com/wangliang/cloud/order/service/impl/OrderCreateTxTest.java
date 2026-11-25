@@ -18,6 +18,8 @@ import java.math.BigDecimal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /** 全局事务本体：任何一步失败都必须抛异常（Seata 靠异常触发全局回滚） */
@@ -39,13 +41,16 @@ class OrderCreateTxTest {
     @Test
     void savesOrderWithRequestIdAndAmount() {
         when(productFeignClient.getProduct(1L)).thenReturn(R.ok(product()));
-        when(stockFeignClient.deductStock(1L, 3)).thenReturn(R.ok());
+        when(stockFeignClient.holdStock(anyLong(), eq(1L), eq(3))).thenReturn(R.ok());
         when(orderMapper.insert(any(Order.class))).thenReturn(1);
 
         tx.execute(dto());
 
         ArgumentCaptor<Order> saved = ArgumentCaptor.forClass(Order.class);
         verify(orderMapper).insert(saved.capture());
+        ArgumentCaptor<Long> holdOrderId = ArgumentCaptor.forClass(Long.class);
+        verify(stockFeignClient).holdStock(holdOrderId.capture(), eq(1L), eq(3));
+        assertThat(saved.getValue().getId()).isEqualTo(holdOrderId.getValue());
         assertThat(saved.getValue().getRequestId()).isEqualTo("r1");
         assertThat(saved.getValue().getTotalAmount()).isEqualByComparingTo("29.97");
     }
@@ -53,7 +58,7 @@ class OrderCreateTxTest {
     @Test
     void stockServiceUnavailableThrowsSoGlobalTxRollsBack() {
         when(productFeignClient.getProduct(1L)).thenReturn(R.ok(product()));
-        when(stockFeignClient.deductStock(1L, 3))
+        when(stockFeignClient.holdStock(anyLong(), eq(1L), eq(3)))
                 .thenReturn(R.fail(ResultCode.SERVICE_UNAVAILABLE.getCode(), "库存服务暂不可用"));
 
         assertThatThrownBy(() -> tx.execute(dto()))

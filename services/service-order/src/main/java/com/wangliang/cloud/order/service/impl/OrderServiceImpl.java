@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements OrderService {
 
     private final OrderCreateTx orderCreateTx;
+    private final OrderPayTx orderPayTx;
 
     @Override
     public Long create(OrderCreateDTO dto) {
@@ -55,5 +56,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
                     dto.getRequestId(), winnerId);
             return winnerId;
         }
+    }
+
+    @Override
+    public void pay(Long orderId) {
+        orderPayTx.pay(orderId);
     }
 }

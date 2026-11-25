@@ -9,11 +9,13 @@ import com.wangliang.cloud.order.entity.Order;
 import com.wangliang.cloud.order.feign.ProductFeignClient;
 import com.wangliang.cloud.order.feign.StockFeignClient;
 import com.wangliang.cloud.order.mapper.OrderMapper;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import lombok.RequiredArgsConstructor;
 import org.apache.seata.spring.annotation.GlobalTransactional;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * 下单的"全局事务本体"：查商品 → 扣库存 → 落订单。
@@ -63,19 +65,21 @@ public class OrderCreateTx {
             throw new BusinessException(ResultCode.PRODUCT_NOT_FOUND);
         }
 
-        // ② 扣库存（Feign）：同样先看错误码，库存不足 / 库存服务不可用时透传
+        // ② 预占库存（Feign）：先生成订单 ID，按该 ID 预占，失败则透传错误码。
         // 注意：这里是"分支事务"，库存服务的本地提交先做了，但 TC 记着账；
         // 如果后面任一步失败，TC 会拿着 undo_log 照片把库存自动加回。
         // 超时的情况也兜得住：超时 → fallback 返回失败 → 这里抛异常 → 全局回滚，
         // 库存分支哪怕"超时后才扣成功"，TC 也会回滚它（或它注册分支时发现全局事务已回滚而本地回滚）。
-        R<Void> deductR = stockFeignClient.deductStock(dto.getProductId(), dto.getCount());
-        if (deductR.getCode() != 0) {
-            throw new BusinessException(deductR.getCode(), deductR.getMsg());
+        Long orderId = IdWorker.getId();
+        R<Void> holdR = stockFeignClient.holdStock(orderId, dto.getProductId(), dto.getCount());
+        if (holdR.getCode() != 0) {
+            throw new BusinessException(holdR.getCode(), holdR.getMsg());
         }
 
         // ③ 组装订单：商品信息快照 + 总金额 = 单价 x 数量
         ProductInfoDTO product = productR.getData();
         Order order = new Order();
+        order.setId(orderId);
         order.setRequestId(dto.getRequestId());
         order.setProductId(product.getId());
         order.setProductName(product.getName());
@@ -83,6 +87,9 @@ public class OrderCreateTx {
         order.setCount(dto.getCount());
         order.setTotalAmount(product.getPrice().multiply(BigDecimal.valueOf(dto.getCount())));
         order.setStatus(0);
+        LocalDateTime now = LocalDateTime.now();
+        order.setCreatedAt(now);
+        order.setExpireAt(now.plusMinutes(5));
 
         // ④ 落订单：request_id 撞唯一索引会抛 DuplicateKeyException，同样触发全局回滚（库存加回）
         if (orderMapper.insert(order) != 1) {
